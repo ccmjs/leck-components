@@ -135,3 +135,8 @@
   line-height: 0px;
   font-size: 18px;
 }
+
+.scrollable-modal-body {
+  max-height: calc(100vh - 212px);
+  overflow-y: auto;
+}
