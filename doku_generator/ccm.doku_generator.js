@@ -44,7 +44,28 @@
                 </div>
                 <div class="col-md-6">
                   <h3>Output documentation<p><small>The output updates live. You will need to provide descriptions for the fields and check if the inferred types are correct.</small></p></h3>
-                  <textarea id="outputDocumentation" class="form-control" rows="30"></textarea>
+                  <p>
+                    <button id="copyToClipboard" type="button" class="btn btn-default">Copy to Clipboard</button>
+                    <button id="editDocumentation" type="button" class="btn btn-primary">Add descriptions</button>
+                  </p>
+                  <textarea id="outputDocumentation" class="form-control" rows="30" readonly></textarea>
+                </div>
+              </div>
+              <!-- Modal -->
+              <div class="modal fade" id="modalDocumentationEditor" tabindex="-1" role="dialog">
+                <div class="modal-dialog" role="document">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                      <h4 class="modal-title">Edit documentation</h4>
+                    </div>
+                    <div class="modal-body scrollable-modal-body" id="documentationEditorBody">
+                      
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+                    </div>
+                  </div>
                 </div>
               </div>
               `
@@ -53,6 +74,7 @@
         }
       },
       css: [ 'ccm.load', '../css/bootstrap.min.css', '../css/default.css' ],
+      js: [ 'ccm.load', [ 'https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js', 'https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js' ] ],
       no_bootstrap_container: false // Set to true if embedded on a site that already has a bootstrap container div
     },
 
@@ -72,7 +94,13 @@
        * Generated documentation
        * @type {{}}
        */
-      let resultingDocumentation = {};
+      this.resultingDocumentation = {};
+
+      /**
+       * Keeps track of created editors
+       * @type {number}
+       */
+      let docEditorIdCounter = 0;
 
       /**
        * starts the instance
@@ -95,6 +123,14 @@
           generateDocumentation(this.value);
         });
 
+        mainElement.querySelector('#copyToClipboard').addEventListener('click', function() {
+          copyToClipboard(JSON.stringify(resultingDocumentation, null, 2));
+        });
+
+        mainElement.querySelector('#editDocumentation').addEventListener('click', function() {
+          displayDocumentationEditor();
+        });
+
         /**
          * Generate documentation
          * @param configString
@@ -105,9 +141,21 @@
           const config = parseConfigString(configString);
           if (config === null) return;
 
-          let documentation = createDocumentation(self.ccm.helper.clone(config));
+          resultingDocumentation = createDocumentation(self.ccm.helper.clone(config), '');
 
-          mainElement.querySelector('#outputDocumentation').value = JSON.stringify(documentation, null, 2);
+          displayDocumentation();
+        }
+
+        function displayDocumentation() {
+          mainElement.querySelector('#outputDocumentation').value = JSON.stringify(resultingDocumentation, null, 2);
+        }
+
+        function displayDocumentationEditor() {
+          $(mainElement.querySelector('#modalDocumentationEditor')).modal('show');
+
+          $(mainElement.querySelector('#modalDocumentationEditor')).on('hide.bs.modal', function (e) {
+            displayDocumentation();
+          });
         }
 
         function parseConfigString(configString) {
@@ -119,7 +167,7 @@
           }
         }
 
-        function createDocumentation(docu) {
+        function createDocumentation(docu, completeKey) {
           const keysOnCurrentIteration = Object.keys(docu);
           if (keysOnCurrentIteration.length === 0) return;
 
@@ -136,12 +184,47 @@
               docu[key].ccm_doc_examples[0][type] = stringifyValue(oldValue);
 
               if (key === 'html') docu[key].ccm_doc_examples[0] = {};
+
+              generateDocEditor(key, completeKey, docu);
+
             } else {
-              createDocumentation(docu[key]);
+              createDocumentation(docu[key], completeKey + key + '.');
             }
           });
 
           return docu;
+        }
+
+        function generateDocEditor(key, completeKey, docu) {
+          docEditorIdCounter++;
+
+          const docuEditor = mainElement.querySelector('#documentationEditorBody');
+          docuEditor.innerHTML += `
+                <form class="form-horizontal">
+                  <h5>${completeKey + key}</h5>
+                  <div class="form-group">
+                    <label for="inputType${docEditorIdCounter}" class="col-sm-2 control-label">Type</label>
+                    <div class="col-sm-10">
+                      <input class="form-control" id="inputType${docEditorIdCounter}" value="${docu[key].ccm_doc_type.join(', ')}" readonly>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label for="inputDescription${docEditorIdCounter}" class="col-sm-2 control-label">Description</label>
+                    <div class="col-sm-10">
+                      <input class="form-control" id="inputDescription${docEditorIdCounter}" value="${docu[key].ccm_doc_desc}" oninput="self.ccm.helper.deepValue(self.resultingDocumentation, this.dataset.wholekey + '.ccm_doc_desc', this.value);" data-wholekey="${completeKey + key}">
+                    </div>
+                  </div>
+                  <h6>Example</h6>
+                  <div class="form-group">
+                    <label for="inputExample${docEditorIdCounter}" class="col-sm-2 control-label">${self.ccm.helper.escapeHTML(docu[key].ccm_doc_type[0])}</label>
+                    <div class="col-sm-10">
+                      <input class="form-control" id="inputExample${docEditorIdCounter}" value="${docu[key].ccm_doc_examples[0][docu[key].ccm_doc_type[0]]}" readonly>
+                    </div>
+                  </div>
+                </form>
+                <hr>
+              `;
+
         }
 
         function ccmDocType(docu, key) {
