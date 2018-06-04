@@ -46,7 +46,7 @@
                   <h3>Output documentation<p><small>The output updates live. You will need to provide descriptions for the fields and check if the inferred types are correct.</small></p></h3>
                   <p>
                     <button id="copyToClipboard" type="button" class="btn btn-default">Copy to Clipboard</button>
-                    <button id="editDocumentation" type="button" class="btn btn-primary">Add descriptions</button>
+                    <button id="editDocumentation" type="button" class="btn btn-primary">Edit documentation</button>
                   </p>
                   <textarea id="outputDocumentation" class="form-control" rows="30" readonly></textarea>
                 </div>
@@ -205,7 +205,16 @@
                   <div class="form-group">
                     <label for="inputType${docEditorIdCounter}" class="col-sm-2 control-label">Type</label>
                     <div class="col-sm-10">
-                      <input class="form-control" id="inputType${docEditorIdCounter}" value="${docu[key].ccm_doc_type.join(', ')}" readonly>
+                      <input class="form-control" id="inputType${docEditorIdCounter}" value="${docu[key].ccm_doc_type.join(', ')}" oninput="
+                      self.ccm.helper.deepValue(self.resultingDocumentation, this.dataset.wholekey + '.ccm_doc_type', this.value.split(/[ ,]+/));
+                      this.parentNode.parentNode.parentNode.querySelector('#inputExampleLabel${docEditorIdCounter}').innerHTML = this.value.split(/[ ,]+/)[0];
+                      let examples = self.ccm.helper.deepValue(self.resultingDocumentation, this.dataset.wholekey + '.ccm_doc_examples');
+                      const currentExampleString = examples[0][Object.keys(examples[0])[0]];
+                      let newExampleObject = {};
+                      newExampleObject[this.value.split(/[ ,]+/)[0]] = currentExampleString;
+                      examples[0] = newExampleObject;
+                      self.ccm.helper.deepValue(self.resultingDocumentation, this.dataset.wholekey + '.ccm_doc_examples', examples);
+                      " data-wholekey="${completeKey + key}">
                     </div>
                   </div>
                   <div class="form-group">
@@ -216,9 +225,16 @@
                   </div>
                   <h6>Example</h6>
                   <div class="form-group">
-                    <label for="inputExample${docEditorIdCounter}" class="col-sm-2 control-label">${self.ccm.helper.escapeHTML(docu[key].ccm_doc_type[0])}</label>
+                    <label for="inputExample${docEditorIdCounter}" id="inputExampleLabel${docEditorIdCounter}" class="col-sm-2 control-label">${self.ccm.helper.escapeHTML(docu[key].ccm_doc_type[0])}</label>
                     <div class="col-sm-10">
-                      <input class="form-control" id="inputExample${docEditorIdCounter}" value="${docu[key].ccm_doc_examples[0][docu[key].ccm_doc_type[0]]}" readonly>
+                      <input class="form-control" id="inputExample${docEditorIdCounter}" value="${docu[key].ccm_doc_examples[0][docu[key].ccm_doc_type[0]]}" oninput="
+                      const exampleKey = this.parentNode.parentNode.parentNode.querySelector('#inputExampleLabel${docEditorIdCounter}').innerHTML;
+                      let examples = self.ccm.helper.deepValue(self.resultingDocumentation, this.dataset.wholekey + '.ccm_doc_examples');
+                      let newExampleObject = {};
+                      newExampleObject[exampleKey] = this.value;
+                      examples[0] = newExampleObject;
+                      self.ccm.helper.deepValue(self.resultingDocumentation, this.dataset.wholekey + '.ccm_doc_examples', examples);
+                      " data-wholekey="${completeKey + key}">
                     </div>
                   </div>
                 </form>
@@ -232,6 +248,10 @@
             if (!Array.isArray(docu[key])) {
               return 'object';
             } else {
+              const ccmTypes = ['ccm.load', 'ccm.component', 'ccm.instance', 'ccm.proxy', 'ccm.start', 'ccm.store', 'ccm.get', 'ccm.set', 'ccm.del', 'ccm.module', 'ccm.polymer'];
+              if (ccmTypes.includes(docu[key][0])) {
+                return docu[key][0];
+              }
               return `Array<${ccmDocType(docu[key], 0)}>`;
             }
           }
