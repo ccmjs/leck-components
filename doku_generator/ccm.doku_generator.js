@@ -44,11 +44,23 @@
                 </div>
                 <div class="col-md-6">
                   <h3>Output documentation<p><small>The output updates live. You will need to provide descriptions for the fields and check if the inferred types are correct.</small></p></h3>
-                  <p>
+                  <p style="margin-bottom: 6px;">
                     <button id="copyToClipboard" type="button" class="btn btn-default">Copy to Clipboard</button>
                     <button id="editDocumentation" type="button" class="btn btn-primary">Edit documentation</button>
                   </p>
-                  <textarea id="outputDocumentation" class="form-control" rows="30" readonly></textarea>
+                  <textarea id="outputDocumentation" class="form-control" rows="28" readonly></textarea>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-xs-12">
+                  <div class="bs-callout bs-callout-primary">
+                    The generated documentation can be stored inside a <em>ccm</em> component or configuration.
+                    <pre>
+meta: {
+  config: <b>Insert the documentation object here</b>
+}</pre>
+                    The information is used e.g. by the <a href="https://github.com/ccmjs/ccm-factory" target="_blank" rel="noopener noreferrer">ccm-factory</a>
+                  </div>
                 </div>
               </div>
               <!-- Modal -->
