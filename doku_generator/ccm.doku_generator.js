@@ -214,7 +214,7 @@ meta: {
           docuEditor.innerHTML += `
                 <form class="form-horizontal">
                   <h5>${completeKey + key}</h5>
-                  <div class="form-group">
+                  <div class="form-group" style="margin-bottom: 0px;">
                     <label for="inputType${docEditorIdCounter}" class="col-sm-2 control-label">Type</label>
                     <div class="col-sm-10">
                       <input class="form-control" id="inputType${docEditorIdCounter}" value="${docu[key].ccm_doc_type.join(', ')}" oninput="
@@ -227,6 +227,7 @@ meta: {
                       examples[0] = newExampleObject;
                       self.ccm.helper.deepValue(self.resultingDocumentation, this.dataset.wholekey + '.ccm_doc_examples', examples);
                       " data-wholekey="${completeKey + key}">
+                      <p class="help-block">Multiple types can be separated by commas.</p>
                     </div>
                   </div>
                   <div class="form-group">
