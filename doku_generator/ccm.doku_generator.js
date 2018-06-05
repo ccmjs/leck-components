@@ -106,7 +106,7 @@ meta: {
        * Generated documentation
        * @type {{}}
        */
-      this.resultingDocumentation = {};
+      window.resultingDocumentation = {};
 
       /**
        * Keeps track of created editors
