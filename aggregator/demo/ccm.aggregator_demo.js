@@ -28,13 +28,15 @@
       quiz: [ 'ccm.instance', 'js/ccm.quiz.js', [ "ccm.get", "js/configs.js", "quiz" ] ],
       cloze: [ 'ccm.instance', 'js/ccm.cloze.js', [ "ccm.get", "js/configs.js", "cloze" ] ],
       slidecast: [ 'ccm.instance', 'js/ccm.slidecast.js', [ "ccm.get", "js/configs.js", "slidecast" ] ],
-      aggregator: [ 'ccm.instance', '../ccm.aggregator.js', {
-        source: [
-          [ "ccm.get", "js/configs.js", "quiz" ],
-          [ "ccm.get", "js/configs.js", "cloze" ],
-          [ "ccm.get", "js/configs.js", "slidecast" ]
-        ]
-      } ]
+      "aggregator": [ "ccm.instance", "../ccm.aggregator.js",
+        {
+          "source": [
+            [ "ccm.get", "js/configs.js", "quiz" ],
+            [ "ccm.get", "js/configs.js", "cloze" ],
+            [ "ccm.get", "js/configs.js", "slidecast" ]
+          ]
+        }
+      ]
     },
 
     /**
@@ -54,15 +56,37 @@
        * @param {function} [callback] - called after all synchronous and asynchronous operations are complete
        */
       this.start = callback => {
+        // Append the components to the page
         self.element.appendChild(self.quiz.root);
         self.element.appendChild(self.cloze.root);
         self.element.appendChild(self.slidecast.root);
 
+        // Start the components
         self.quiz.start();
         self.cloze.start();
         self.slidecast.start();
 
-        self.aggregator.start();
+        // TODO: Hier alle verschiendenen Aufrufarten durchführen und kommentieren
+
+        /*
+          Aggregation without any configuration. Return an object containing the aggregated information.
+         */
+        console.log('Aggregated:', self.aggregator.aggregate());
+
+        /*
+          The aggregate function logs the information to the console.
+         */
+        self.aggregator.aggregate({
+          log: true
+        });
+
+        /*
+          Duplicate values will not be removed
+         */
+        self.aggregator.aggregate({
+          log: true,
+          allowDuplicates: true
+        });
 
 
         if ( callback ) callback();

@@ -1,7 +1,8 @@
 ccm.files[ 'configs.js' ] = {
   "quiz": {
-    "aggregatable": ["topics"],
+    "aggregatable": ["topics", "vocabulary"],
     "topics": ["questions", "arithmetic"],
+    "vocabulary": ["word1", "word2"],
     "css": [ "ccm.load", "https://ccmjs.github.io/akless-components/quiz/resources/weblysleek.css", { "context": "head", "url": "https://ccmjs.github.io/akless-components/libs/weblysleekui/font.css" } ],
     "questions": [
       {
@@ -67,8 +68,9 @@ ccm.files[ 'configs.js' ] = {
     "captions.finish": "Save and Restart",
   },
   "slidecast": {
-    "aggregatable": ["topics"],
+    "aggregatable": ["topics", "vocabulary"],
     "topics": ["photos", "pictures"],
+    "vocabulary": ["word1", "word2", "word3"],
     "slides": [
       {
         "image": "https://images.unsplash.com/photo-1512766411668-e305741fcb8b?ixlib=rb-0.3.5&s=201ca0d3c8520c8624b84db55270b38d&auto=format&fit=crop&w=1050&q=80"
