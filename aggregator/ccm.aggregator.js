@@ -47,12 +47,6 @@
         if ( callback ) callback();
       };
 
-
-      /**
-       * TODO:
-       * - Meta Tag hinzufügen der die Config dokumentiert (source und settings)
-       */
-
       /**
        * Aggregates information
        * @param {object} [settings]
@@ -71,9 +65,17 @@
         if (!self.source) return aggregatedInformation;
 
         self.source.forEach(source => {
-          if (isNotAnAggregatorType(source.aggregatable)) return;
 
-          source.aggregatable.forEach(key => {
+          let aggregatableKeys = [];
+          if (configuration.aggregatable) {
+            if (isNotAnAggregatorType(configuration.aggregatable)) return;
+            aggregatableKeys = configuration.aggregatable;
+          } else {
+            if (isNotAnAggregatorType(source.aggregatable)) return;
+            aggregatableKeys = source.aggregatable;
+          }
+
+          aggregatableKeys.forEach(key => {
             if (isNotAnAggregatorType(source[key])) return;
 
             if (aggregatedInformation[key]) {
