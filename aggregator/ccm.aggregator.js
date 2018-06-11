@@ -44,12 +44,64 @@
        * @param {function} [callback] - called after all synchronous and asynchronous operations are complete
        */
       this.start = callback => {
-        console.log(self.source);
-
         if ( callback ) callback();
       };
 
 
+      /**
+       * TODO:
+       * - Meta Tag hinzufügen der die Config dokumentiert (source und settings)
+       */
+
+      /**
+       * Aggregates information
+       * @param {object} [settings]
+       * @returns {object}
+       */
+      this.aggregate = settings => {
+        let configuration = {};
+        if (settings) {
+          configuration = settings;
+        } else if (self.settings) {
+          configuration = self.settings;
+        }
+
+        let aggregatedInformation = {};
+
+        if (!self.source) return aggregatedInformation;
+
+        self.source.forEach(source => {
+          if (isNotAnAggregatorType(source.aggregatable)) return;
+
+          source.aggregatable.forEach(key => {
+            if (isNotAnAggregatorType(source[key])) return;
+
+            if (aggregatedInformation[key]) {
+              if (configuration.allowDuplicates) {
+                aggregatedInformation[key] = [...aggregatedInformation[key], ...source[key]];
+              } else {
+                aggregatedInformation[key] = mergeInformation(aggregatedInformation[key], source[key]);
+              }
+            } else {
+              aggregatedInformation[key] = source[key];
+            }
+          });
+        });
+
+        if (configuration.log) {
+          console.log(aggregatedInformation);
+        }
+
+        return aggregatedInformation;
+      };
+
+      function isNotAnAggregatorType(value) {
+        return (!value || !Array.isArray(value) || typeof(value[0]) !== 'string');
+      }
+
+      function mergeInformation(currentInformation, newInformation) {
+        return [...new Set([...currentInformation ,...newInformation])];
+      }
 
     }
   };
