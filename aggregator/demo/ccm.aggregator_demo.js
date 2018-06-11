@@ -66,8 +66,6 @@
         self.cloze.start();
         self.slidecast.start();
 
-        // TODO: Hier alle verschiendenen Aufrufarten durchführen und kommentieren
-
         /*
           Aggregation without any configuration. Return an object containing the aggregated information.
          */
@@ -86,6 +84,14 @@
         self.aggregator.aggregate({
           log: true,
           allowDuplicates: true
+        });
+
+        /*
+          Override aggregatable keys
+         */
+        self.aggregator.aggregate({
+          log: true,
+          aggregatable: ["topics", "vocabulary"]
         });
 
 
