@@ -20,11 +20,46 @@
      */
     ccm: '../js/ccm-16.6.1.js',
 
+    meta: {
+      config: {
+        "settings": {
+          "log": {
+            "ccm_doc_type": [
+              "boolean"
+            ],
+            "ccm_doc_desc": "In addition to returning the aggregated information, the function will also log it to the console.",
+          },
+          "allowDuplicates": {
+            "ccm_doc_type": [
+              "boolean"
+            ],
+            "ccm_doc_desc": "Duplicate values will appear as often and in the order they are found.",
+          },
+          "aggregatable": {
+            "ccm_doc_type": [
+              "Array<string>|undefined"
+            ],
+            "ccm_doc_desc": "Overrides the aggregatable array inside of configurations.",
+            "ccm_doc_examples": [
+              {
+                "Array<string>": "[ 'addition', 'subtraction', 'multiplication ', 'division' ]"
+              }
+            ]
+          }
+        }
+      }
+    },
+
     /**
      * default instance configuration
      * @type {{}}
      */
     config: {
+      settings: {
+        log: false, // In addition to returning the aggregated information, the function will also log it to the console.
+        allowDuplicates: false, // Duplicate values will appear as often and in the order they are found.
+        aggregatable: undefined // Overrides the aggregatable array inside of configurations.
+      }
     },
 
     /**
