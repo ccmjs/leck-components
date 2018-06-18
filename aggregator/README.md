@@ -12,7 +12,7 @@ You first have to specify information that can be aggregated on a *ccm* componen
 {
   "aggregatable": [ "topics", "vocabulary" ],
   "topics": [ "math", "arithmetic" ],
-  "vocabulary": [ "addition", "subtraction", "multiplication ", "division" ]
+  "vocabulary": [ "addition", "subtraction", "multiplication", "division" ]
 }
 ```
 
