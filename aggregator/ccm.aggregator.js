@@ -105,6 +105,14 @@
         return [...new Set([...currentInformation ,...newInformation])];
       }
 
+      /**
+       * Aggregates information (forwards call to aggregate function)
+       * @returns {object}
+       */
+      this.getValue = (settings) => {
+        return this.aggregate(settings);
+      };
+
     }
   };
 
