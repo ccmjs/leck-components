@@ -276,6 +276,8 @@ meta: {
           let returnValue = value;
           if (typeof(value) === 'object') {
             returnValue = JSON.stringify(value);
+          } else if (typeof(value) === "undefined") {
+            return "undefined";
           }
 
           // Strip leading and trailing quotation marks
