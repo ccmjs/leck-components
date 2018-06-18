@@ -69,11 +69,13 @@
         /*
           Aggregation without any configuration. Return an object containing the aggregated information.
          */
+        console.log('Aggregation without any configuration:');
         console.log('Aggregated:', self.aggregator.aggregate());
 
         /*
           The aggregate function logs the information to the console.
          */
+        console.log('The aggregate function logs the information to the console:');
         self.aggregator.aggregate({
           log: true
         });
@@ -81,6 +83,7 @@
         /*
           Duplicate values will not be removed
          */
+        console.log('Duplicate values will not be removed:');
         self.aggregator.aggregate({
           log: true,
           allowDuplicates: true
@@ -89,6 +92,7 @@
         /*
           Override aggregatable keys
          */
+        console.log('Override aggregatable keys');
         self.aggregator.aggregate({
           log: true,
           aggregatable: ["topics", "vocabulary"]
