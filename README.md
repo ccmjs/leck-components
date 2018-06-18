@@ -9,3 +9,10 @@ Using events for dependency injection.
 >[https://ccmjs.github.io/leck-components/doku_generator/](https://ccmjs.github.io/leck-components/doku_generator/)
 
 Generates a documentation for a ccm configuration.
+
+### Aggregator
+
+Aggregates information from components.
+
+- [README on how it works](https://ccmjs.github.io/leck-components/aggregator/)
+- [DEMO](https://ccmjs.github.io/leck-components/aggregator/demo/)
