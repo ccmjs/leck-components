@@ -117,6 +117,10 @@
   margin-top:20px;
 }
 
+.sm-top-buffer {
+  margin-top: 5px;
+}
+
 .btn-circle {
   width: 25px;
   height: 25px;
@@ -139,4 +143,9 @@
 .scrollable-modal-body {
   max-height: calc(100vh - 212px);
   overflow-y: auto;
+}
+
+/* https://github.com/selectize/selectize.js/issues/851 */
+.selectize-input:not(.has-items) input {
+  width: 100% !important;
 }
