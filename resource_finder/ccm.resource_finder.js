@@ -34,7 +34,31 @@
               "inner": `
               <div class="row">
                 <div class="col-xs-12">
-                  <h1>Resource Finder</h1>
+                  <div class="input-group">
+                    <select id="searchCategory" style="width: 20%;"></select>
+                    <input type="text" class="form-control" id="searchTerm" style="width: 80%;">
+                    <span class="input-group-btn">
+                      <button type="button" id="buttonSearch" class="btn btn-primary">Search</button>
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div class="row sm-top-buffer">
+                <div class="col-xs-12">
+                  <div class="panel panel-default">
+                    <div class="panel-body">
+                      Filter
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-xs-12">
+                  <div class="panel panel-default">
+                    <div class="panel-body">
+                      TODO: Search results
+                    </div>
+                  </div>
                 </div>
               </div>
               `
@@ -42,8 +66,10 @@
           ]
         }
       },
-      css: [ 'ccm.load', 'https://ccmjs.github.io/leck-components/css/bootstrap.min.css', 'https://ccmjs.github.io/leck-components/css/default.css' ],
-      no_bootstrap_container: false // Set to true if embedded on a site that already has a bootstrap container div
+      css: [ 'ccm.load', [ '../css/bootstrap.min.css', '../css/selectize.default.min.css', '../css/default.css' ] ],
+      js: [ 'ccm.load', [ '../js/jquery.min.js', '../js/bootstrap.min.js', '../js/selectize.min.js' ] ],
+      no_bootstrap_container: false, // Set to true if embedded on a site that already has a bootstrap container div
+      categories: ['Art', 'Computer Science', 'Economy', 'History'], // Categories the user can choose from
     },
 
     /**
@@ -74,6 +100,31 @@
         const mainElement = this.ccm.helper.html(this.html.main, {
         });
         this.element.appendChild(mainElement);
+
+        /**
+         * Initialize the category input
+         */
+        let categoryOptions = [{
+          value: 'All categories'
+        }]; // Prepend an option to search in all categories
+        self.categories.forEach(category => {
+          categoryOptions.push({
+            value: category
+          });
+        });
+
+        const categorySelector = $(mainElement.querySelector('#searchCategory')).selectize({
+          inputClass: 'form-control selectize-input',
+          persist: false,
+          create: false,
+          maxItems: 1,
+          placeholder: 'Category for searching',
+          valueField: 'value',
+          labelField: 'value',
+          searchField: 'value',
+          options: categoryOptions,
+          items: ['All categories']
+        })[0].selectize;
 
 
 
