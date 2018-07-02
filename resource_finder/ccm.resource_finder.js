@@ -32,6 +32,11 @@
           "inner": [
             {
               "inner": `
+              <div id="spinner" class="spinner popup no-margin">
+                <div class="bounce1"></div>
+                <div class="bounce2"></div>
+                <div class="bounce3"></div>
+              </div>
               <div class="row">
                 <div class="col-md-3">
                   <select id="searchCategory"></select>
@@ -76,8 +81,7 @@
               <div class="row">
                 <div class="col-xs-12">
                   <div class="panel panel-default">
-                    <div class="panel-body">
-                      TODO: Search results
+                    <div id="searchResults" class="panel-body">
                     </div>
                   </div>
                 </div>
@@ -87,11 +91,12 @@
           ]
         }
       },
-      css: [ 'ccm.load', [ '../css/bootstrap.min.css', '../css/selectize.default.min.css', '../css/default.css' ] ],
+      css: [ 'ccm.load', [ '../css/bootstrap.min.css', '../css/selectize.default.min.css', '../css/default.css', './main.css' ] ],
       js: [ 'ccm.load', [ '../js/jquery.min.js', '../js/bootstrap.min.js', '../js/selectize.min.js' ] ],
       no_bootstrap_container: false, // Set to true if embedded on a site that already has a bootstrap container div
       tags: ['HTML', 'JavaScript', 'CSS', 'Education'], // Tags the user can choose from
       categories: ['Art', 'Computer Science', 'Economy', 'History'], // Categories the user can choose from
+      registry: "../dms_data/registry.json", // Path to the registry file
     },
 
     /**
@@ -105,6 +110,12 @@
        * @type {Instance}
        */
       const self = this;
+
+      /**
+       * Registry of all resources
+       * @type {{}}
+       */
+      let registryData = {};
 
       /**
        * starts the instance
@@ -420,8 +431,82 @@
           options: bloomTaxonomyOptions
         })[0].selectize;
 
+        mainElement.querySelector('#buttonSearch').addEventListener('click', function (event) {
+          event.preventDefault();
+          displayResources(searchByText(mainElement.querySelector('#searchTerm').value, registryData));
+        });
 
+        loadRegistry()
+          .then(data => {
+            registryData = data;
+            // Load all metadata that is not yet present as an object
+            Promise.all(Object.keys(registryData).map(fetchMetadata))
+              .then(() => {
+                displayResources(registryData);
+              });
+          })
+          .catch(error => console.log(error.message))
+          .then(() => hideSpinner());
 
+        async function loadRegistry() {
+          const response = await fetch(self.registry);
+          return await response.json();
+        }
+
+        async function fetchMetadata(key) {
+          const data = await fetch(registryData[key].metadata);
+          const content = await data.json();
+          if (content.metaFormat === 'ccm-meta' && content.metaVersion === '1.0.0') {
+            registryData[key].metadata = content;
+          } else {
+            delete registryData[key].metadata;
+          }
+        }
+
+        /**
+         * Takes in an object of resources and returns an object of all matching ones
+         * @param text
+         * @param data
+         * @returns {*}
+         */
+        function searchByText(text, data) {
+          let matchingData = self.ccm.helper.clone(data);
+
+          Object.keys(matchingData).forEach(key => {
+            if (
+              matchingData[key].metadata.title.includes(text) ||
+              matchingData[key].metadata.description.includes(text) ||
+              matchingData[key].metadata.subject.includes(text)
+            ) {} else {
+              delete matchingData[key];
+            }
+          });
+
+          return matchingData;
+        }
+
+        function displayResources(data) {
+          clearSearchResults();
+          Object.keys(data).forEach(key => {
+            if (data[key].metadata) {
+              mainElement.querySelector('#searchResults').innerHTML += `
+                <div class="panel panel-default searchResult">
+                  <div class="panel-body">
+                    <h4>${data[key].metadata.title}</h4>
+                  </div>
+                </div>
+              `;
+            }
+          });
+        }
+
+        function clearSearchResults() {
+          mainElement.querySelector('#searchResults').innerHTML = '';
+        }
+
+        function hideSpinner() {
+          mainElement.querySelector('#spinner').style.display = 'none';
+        }
 
         if ( callback ) callback();
       };
