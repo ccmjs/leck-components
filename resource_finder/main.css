@@ -1,0 +1,12 @@
+#searchResults {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.searchResult {
+  display: flex;
+  align-items: center;
+  width: 20em;
+  margin: 5px;
+}
