@@ -70,7 +70,7 @@
                         <div class="col-md-4">
                           <div class="form-group">
                             <label for="filterBloom">Bloom’s Taxonomy</label>
-                            <select id="filterBloom" multiple></select>
+                            <select id="filterBloom"></select>
                           </div>
                         </div>
                       </div>
@@ -139,7 +139,7 @@
         category: '',
         tags: [],
         languages: [],
-        bloom: [],
+        bloom: '',
         licenseSoftware: '',
         licenseContent: ''
       };
@@ -446,11 +446,9 @@
         ];
 
         const bloomTaxonomySelector = $(mainElement.querySelector('#filterBloom')).selectize({
-          delimiter: ',',
           persist: false,
           create: false,
-          plugins: ['remove_button'],
-          maxItems: null,
+          maxItems: 1,
           placeholder: 'Filter by Bloom’s Taxonomy. (Default: all)',
           valueField: 'value',
           labelField: 'value',
@@ -755,12 +753,11 @@
           let matchingData = self.ccm.helper.clone(data);
 
           Object.keys(matchingData).forEach(key => {
-            bloom.some(value => {
-              if (!matchingData[key].metadata.bloomTaxonomy.includes(value)) {
-                delete matchingData[key];
-                return true;
-              }
-            });
+            if (
+              matchingData[key].metadata.bloomTaxonomy === bloom
+            ) {} else {
+              delete matchingData[key];
+            }
           });
 
           return matchingData;
