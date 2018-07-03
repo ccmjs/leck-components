@@ -132,6 +132,19 @@
       let registryData = {};
 
       /**
+       * Value of all filters
+       * @type {{}}
+       */
+      let filter = {
+        category: '',
+        tags: [],
+        languages: [],
+        bloom: [],
+        licenseSoftware: '',
+        licenseContent: ''
+      };
+
+      /**
        * starts the instance
        * @param {function} [callback] - called after all synchronous and asynchronous operations are complete
        */
@@ -545,6 +558,36 @@
           }
         });
 
+        categorySelector.on('change', () => {
+          const category = categorySelector.getValue();
+          if (category === 'All categories') {
+            filter.category = '';
+          } else {
+            filter.category = categorySelector.getValue();
+          }
+          displayResources();
+        });
+        tagSelector.on('change', () => {
+          filter.tags = tagSelector.getValue();
+          displayResources();
+        });
+        languageSelector.on('change', () => {
+          filter.languages = languageSelector.getValue();
+          displayResources();
+        });
+        bloomTaxonomySelector.on('change', () => {
+          filter.bloom = bloomTaxonomySelector.getValue();
+          displayResources();
+        });
+        softwareLicenseSelector.on('change', () => {
+          filter.licenseSoftware = softwareLicenseSelector.getValue();
+          displayResources();
+        });
+        contentLicenseSelector.on('change', () => {
+          filter.licenseContent = contentLicenseSelector.getValue();
+          displayResources();
+        });
+
         loadRegistry()
           .then(data => {
             registryData = data;
@@ -596,7 +639,24 @@
             filteredData = searchByText(searchTerm, filteredData);
           }
 
-          // TODO: Alle weiteren Filter hier aufrufen, solange sie aktiv sind (also etwas anderes als der Default wert ausgewählt wurde)
+          if (filter.category !== '') {
+            filteredData = searchByCategory(filter.category, filteredData);
+          }
+          if (filter.tags.length !== 0) {
+            filteredData = searchByTags(filter.tags, filteredData);
+          }
+          if (filter.languages.length !== 0) {
+            filteredData = searchByLanguages(filter.languages, filteredData);
+          }
+          if (filter.bloom.length !== 0) {
+            filteredData = searchByBloom(filter.bloom, filteredData);
+          }
+          if (filter.licenseSoftware !== '') {
+            filteredData = searchByLicenseSoftware(filter.licenseSoftware, filteredData);
+          }
+          if (filter.licenseContent !== '') {
+            filteredData = searchByLicenseContent(filter.licenseContent, filteredData);
+          }
 
           return filteredData;
         }
@@ -615,6 +675,129 @@
               matchingData[key].metadata.title.includes(text) ||
               matchingData[key].metadata.description.includes(text) ||
               matchingData[key].metadata.subject.includes(text)
+            ) {} else {
+              delete matchingData[key];
+            }
+          });
+
+          return matchingData;
+        }
+
+        /**
+         * Takes in an object of resources and returns an object of all matching ones
+         * @param category
+         * @param data
+         * @returns {*}
+         */
+        function searchByCategory(category, data) {
+          let matchingData = self.ccm.helper.clone(data);
+
+          Object.keys(matchingData).forEach(key => {
+            if (
+              matchingData[key].metadata.category === category
+            ) {} else {
+              delete matchingData[key];
+            }
+          });
+
+          return matchingData;
+        }
+
+        /**
+         * Takes in an object of resources and returns an object of all matching ones
+         * @param tags
+         * @param data
+         * @returns {*}
+         */
+        function searchByTags(tags, data) {
+          let matchingData = self.ccm.helper.clone(data);
+
+          Object.keys(matchingData).forEach(key => {
+            tags.some(tag => {
+              if (!matchingData[key].metadata.tags.includes(tag)) {
+                delete matchingData[key];
+                return true;
+              }
+            });
+          });
+
+          return matchingData;
+        }
+
+        /**
+         * Takes in an object of resources and returns an object of all matching ones
+         * @param languages
+         * @param data
+         * @returns {*}
+         */
+        function searchByLanguages(languages, data) {
+          let matchingData = self.ccm.helper.clone(data);
+
+          Object.keys(matchingData).forEach(key => {
+            languages.some(language => {
+              if (!matchingData[key].metadata.language.includes(language)) {
+                delete matchingData[key];
+                return true;
+              }
+            });
+          });
+
+          return matchingData;
+        }
+
+        /**
+         * Takes in an object of resources and returns an object of all matching ones
+         * @param bloom
+         * @param data
+         * @returns {*}
+         */
+        function searchByBloom(bloom, data) {
+          let matchingData = self.ccm.helper.clone(data);
+
+          Object.keys(matchingData).forEach(key => {
+            bloom.some(value => {
+              if (!matchingData[key].metadata.bloomTaxonomy.includes(value)) {
+                delete matchingData[key];
+                return true;
+              }
+            });
+          });
+
+          return matchingData;
+        }
+
+        /**
+         * Takes in an object of resources and returns an object of all matching ones
+         * @param license
+         * @param data
+         * @returns {*}
+         */
+        function searchByLicenseSoftware(license, data) {
+          let matchingData = self.ccm.helper.clone(data);
+
+          Object.keys(matchingData).forEach(key => {
+            if (
+              matchingData[key].metadata.license.software === license
+            ) {} else {
+              delete matchingData[key];
+            }
+          });
+
+          return matchingData;
+        }
+
+        /**
+         * Takes in an object of resources and returns an object of all matching ones
+         * @param license
+         * @param data
+         * @returns {*}
+         */
+        function searchByLicenseContent(license, data) {
+          let matchingData = self.ccm.helper.clone(data);
+
+          Object.keys(matchingData).forEach(key => {
+            if (
+              matchingData[key].metadata.license.content === license
             ) {} else {
               delete matchingData[key];
             }
