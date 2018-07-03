@@ -74,6 +74,20 @@
                           </div>
                         </div>
                       </div>
+                      <div class="row">
+                        <div class="col-md-6">
+                          <div class="form-group">
+                            <label for="filterLicenseSoftware">Software License</label>
+                            <select id="filterLicenseSoftware"></select>
+                          </div>
+                        </div>
+                        <div class="col-md-6">
+                          <div class="form-group">
+                            <label for="filterLicenseContent">Content License</label>
+                            <select id="filterLicenseContent"></select>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -135,7 +149,7 @@
         this.element.appendChild(mainElement);
 
         /**
-         * Initialize the category input
+         * Initialize the category filter
          */
         let categoryOptions = [{
           value: 'All categories'
@@ -160,7 +174,7 @@
         })[0].selectize;
 
         /**
-         * Initialize the tag input
+         * Initialize the tag filter
          */
         let tagOptions = [];
         self.tags.forEach(tag => {
@@ -371,7 +385,7 @@
         };
 
         /**
-         * Initialize the language input
+         * Initialize the language filter
          */
         let languageOptions = [];
         Object.keys(languages).forEach(key => {
@@ -395,7 +409,7 @@
         })[0].selectize;
 
         /**
-         * Initialize the bloom taxonomy input
+         * Initialize the bloom taxonomy filter
          */
         let bloomTaxonomyOptions = [
           {
@@ -431,9 +445,104 @@
           options: bloomTaxonomyOptions
         })[0].selectize;
 
+        /**
+         * Initialize the software license filter
+         */
+        const softwareLicenseOptions = [
+          {
+            value: 'MIT',
+            label: '﻿﻿MIT License (MIT)'
+          },
+          {
+            value: 'AGPL',
+            label: '﻿GNU Affero General Public License (﻿AGPL)'
+          },
+          {
+            value: 'GPL',
+            label: '﻿GNU General Public License (﻿GPL)'
+          },
+          {
+            value: 'LGPL',
+            label: '﻿GNU Lesser General Public License (﻿LGPL)'
+          },
+          {
+            value: 'MPL',
+            label: '﻿﻿Mozilla Public License (MPL)'
+          },
+          {
+            value: 'Apache',
+            label: '﻿﻿Apache License (Apache)'
+          },
+          {
+            value: 'Unlicense',
+            label: '﻿The Unlicense (﻿Unlicense)'
+          }
+        ];
+
+        const softwareLicenseSelector = $(mainElement.querySelector('#filterLicenseSoftware')).selectize({
+          persist: false,
+          create: false,
+          maxItems: 1,
+          placeholder: 'Select a software license (Default: All)',
+          valueField: 'value',
+          labelField: 'label',
+          searchField: 'label',
+          options: softwareLicenseOptions
+        })[0].selectize;
+
+        /**
+         * Initialize the content license filter
+         */
+        const contentLicenseOptions = [
+          {
+            value: 'CC-BY-4.0',
+            label: '﻿﻿Creative Commons Attribution 4.0 International (CC-BY-4.0)'
+          },
+          {
+            value: 'CC-BY-SA-4.0',
+            label: '﻿﻿﻿Creative Commons Attribution Share Alike 4.0 International (﻿CC-BY-SA-4.0)'
+          },
+          {
+            value: 'CC-BY-ND-4.0',
+            label: '﻿﻿﻿﻿Creative Commons Attribution No Derivatives 4.0 International (﻿CC-BY-ND-4.0)'
+          },
+          {
+            value: 'CC-BY-NC-4.0',
+            label: '﻿Creative Commons Attribution Non Commercial 4.0 International (﻿CC-BY-NC-4.0)'
+          },
+          {
+            value: 'CC-BY-NC-SA-4.0',
+            label: '﻿Creative Commons Attribution Non Commercial Share Alike 4.0 International (﻿CC-BY-NC-SA-4.0)'
+          },
+          {
+            value: 'CC-BY-NC-ND-4.0',
+            label: '﻿Creative Commons Attribution Non Commercial No Derivatives 4.0 International﻿ (﻿CC-BY-NC-ND-4.0)'
+          }
+        ];
+
+        const contentLicenseSelector = $(mainElement.querySelector('#filterLicenseContent')).selectize({
+          persist: false,
+          create: false,
+          maxItems: 1,
+          placeholder: 'Select a content license (Default: All)',
+          valueField: 'value',
+          labelField: 'label',
+          searchField: 'label',
+          options: contentLicenseOptions
+        })[0].selectize;
+
+        /**
+         * Trigger a search by clicking on the search button or hitting the enter key while in search term input
+         */
         mainElement.querySelector('#buttonSearch').addEventListener('click', function (event) {
           event.preventDefault();
-          displayResources(searchByText(mainElement.querySelector('#searchTerm').value, registryData));
+          displayResources();
+        });
+        mainElement.querySelector('#searchTerm').addEventListener('keyup', function (event) {
+          event.preventDefault();
+          if (event.keyCode === 13) {
+            displayResources();
+          }
         });
 
         loadRegistry()
@@ -442,7 +551,7 @@
             // Load all metadata that is not yet present as an object
             Promise.all(Object.keys(registryData).map(fetchMetadata))
               .then(() => {
-                displayResources(registryData);
+                displayResources();
               });
           })
           .catch(error => console.log(error.message))
@@ -461,6 +570,35 @@
           } else {
             delete registryData[key].metadata;
           }
+        }
+
+        function displayResources() {
+          clearSearchResults();
+          const data = applyAllFilters(registryData);
+          Object.keys(data).forEach(key => {
+            if (data[key].metadata) {
+              mainElement.querySelector('#searchResults').innerHTML += `
+                <div class="panel panel-default searchResult">
+                  <div class="panel-body">
+                    <h4>${data[key].metadata.title}</h4>
+                  </div>
+                </div>
+              `;
+            }
+          });
+        }
+
+        function applyAllFilters(data) {
+          let filteredData = self.ccm.helper.clone(data);
+
+          const searchTerm = mainElement.querySelector('#searchTerm').value;
+          if (searchTerm !== '') {
+            filteredData = searchByText(searchTerm, filteredData);
+          }
+
+          // TODO: Alle weiteren Filter hier aufrufen, solange sie aktiv sind (also etwas anderes als der Default wert ausgewählt wurde)
+
+          return filteredData;
         }
 
         /**
@@ -483,21 +621,6 @@
           });
 
           return matchingData;
-        }
-
-        function displayResources(data) {
-          clearSearchResults();
-          Object.keys(data).forEach(key => {
-            if (data[key].metadata) {
-              mainElement.querySelector('#searchResults').innerHTML += `
-                <div class="panel panel-default searchResult">
-                  <div class="panel-body">
-                    <h4>${data[key].metadata.title}</h4>
-                  </div>
-                </div>
-              `;
-            }
-          });
         }
 
         function clearSearchResults() {
