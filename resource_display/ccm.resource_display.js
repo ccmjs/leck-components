@@ -33,8 +33,7 @@
             {
               "inner": `
               <div class="row">
-                <div class="col-xs-12">
-                  <h1>Resource Display</h1>
+                <div id="resourceDisplayArea" class="col-xs-12">
                 </div>
               </div>
               `
@@ -59,6 +58,12 @@
       const self = this;
 
       /**
+       * Stores the metadata of the resource, that should be displayed
+       * @type {{}}
+       */
+      let metadataToDisplay = {};
+
+      /**
        * starts the instance
        * @param {function} [callback] - called after all synchronous and asynchronous operations are complete
        */
@@ -75,7 +80,46 @@
         });
         this.element.appendChild(mainElement);
 
+        let urlHash = window.location.hash.substr(1);
+        if (urlHash !== '') {
+          const hashParameters = urlHash.split('&');
+          hashParameters.forEach(parameter => {
+            const key = parameter.split('=')[0];
+            const value = parameter.split('=')[1];
+            switch (key) {
+              case 'displaymetadata':
+                loadResource(value);
+                break;
+              default:
+                console.log(`Unknown URL parameter: ${key}`);
+            }
+          });
+        }
 
+        /**
+         * Display resource
+         * @param url URL to the metadata file
+         */
+        function loadResource(url) {
+          fetchMetadata(url)
+            .then(metadata => {
+              metadataToDisplay = metadata;
+              renderResource();
+            });
+        }
+
+        async function fetchMetadata(url) {
+          const data = await fetch(url);
+          return await data.json();
+        }
+
+        function renderResource() {
+          const displayArea = mainElement.querySelector('#resourceDisplayArea');
+          displayArea.innerHTML = '';
+          displayArea.innerHTML = `
+            <h1>${metadataToDisplay.title}</h1>
+          `;
+        }
 
         if ( callback ) callback();
       };
