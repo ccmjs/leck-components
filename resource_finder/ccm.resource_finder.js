@@ -102,6 +102,8 @@
                 </div>
               </div>
               `
+            }, {
+              "id": "resourceDisplaySpace"
             }
           ]
         }
@@ -594,6 +596,25 @@
           displayResources();
         });
 
+        window.addEventListener('hashchange', function() {
+          /**
+           * Note:
+           * This event is fired every time the hash changes.
+           * In this component we want to use this behaviour to detect,
+           * if the user hit the browser back or forward button.
+           */
+          const urlHash = window.location.hash.substr(1);
+          if (!urlHash.includes('displaymetadata')) {
+            // Show finder
+            mainElement.querySelector('#resource_finder').style.display = 'block';
+
+            clearResourceDisplay();
+          } else {
+            const url = urlHash.match('displaymetadata=([^&]+)');
+            displayOneResource(url[1]);
+          }
+        });
+
         let urlHash = window.location.hash.substr(1);
         if (urlHash !== '') {
           const hashParameters = urlHash.split('&');
@@ -657,7 +678,7 @@
           mainElement.querySelectorAll('.resourceCard').forEach(card => {
             card.addEventListener('click', function(event) {
               event.preventDefault();
-              displayOneResource(keyToUrl[event.target.dataset.key]);
+              navigateToResource(keyToUrl[event.target.dataset.key]);
             });
           });
         }
@@ -836,20 +857,28 @@
           return matchingData;
         }
 
-        function displayOneResource(url) {
+        function navigateToResource(url) {
           window.location.hash = `displaymetadata=${url}`;
+        }
+
+        function displayOneResource(url) {
+          clearResourceDisplay();
 
           // Hide finder
           mainElement.querySelector('#resource_finder').style.display = 'none';
 
           // Create instance of the resource display
           self.resource_display.start({}, instance => {
-            mainElement.appendChild(instance.root);
+            mainElement.querySelector('#resourceDisplaySpace').appendChild(instance.root);
           });
         }
 
         function clearSearchResults() {
           mainElement.querySelector('#searchResults').innerHTML = '';
+        }
+
+        function clearResourceDisplay() {
+          mainElement.querySelector('#resourceDisplaySpace').innerHTML = '';
         }
 
         function hideSpinner() {
