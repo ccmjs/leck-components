@@ -31,6 +31,7 @@
           "class": "container bootfont",
           "inner": [
             {
+              "id": "resource_finder",
               "inner": `
               <div id="spinner" class="spinner popup no-margin">
                 <div class="bounce1"></div>
@@ -107,6 +108,7 @@
       },
       css: [ 'ccm.load', [ '../css/bootstrap.min.css', '../css/selectize.default.min.css', '../css/default.css', './main.css' ] ],
       js: [ 'ccm.load', [ '../js/jquery.min.js', '../js/bootstrap.min.js', '../js/selectize.min.js' ] ],
+      resource_display: [ 'ccm.component', '../resource_display/ccm.resource_display.js' ],
       no_bootstrap_container: false, // Set to true if embedded on a site that already has a bootstrap container div
       tags: ['HTML', 'JavaScript', 'CSS', 'Education'], // Tags the user can choose from
       categories: ['Art', 'Computer Science', 'Economy', 'History'], // Categories the user can choose from
@@ -130,6 +132,12 @@
        * @type {{}}
        */
       let registryData = {};
+
+      /**
+       * Maps metadata keys to there urls
+       * @type {{}}
+       */
+      let keyToUrl = {};
 
       /**
        * Value of all filters
@@ -586,6 +594,22 @@
           displayResources();
         });
 
+        let urlHash = window.location.hash.substr(1);
+        if (urlHash !== '') {
+          const hashParameters = urlHash.split('&');
+          hashParameters.forEach(parameter => {
+            const key = parameter.split('=')[0];
+            const value = parameter.split('=')[1];
+            switch (key) {
+              case 'displaymetadata':
+                displayOneResource(value);
+                break;
+              default:
+                console.log(`Unknown URL parameter: ${key}`);
+            }
+          });
+        }
+
         loadRegistry()
           .then(data => {
             registryData = data;
@@ -604,6 +628,7 @@
         }
 
         async function fetchMetadata(key) {
+          keyToUrl[key] = registryData[key].metadata;
           const data = await fetch(registryData[key].metadata);
           const content = await data.json();
           if (content.metaFormat === 'ccm-meta' && content.metaVersion === '1.0.0') {
@@ -621,11 +646,19 @@
               mainElement.querySelector('#searchResults').innerHTML += `
                 <div class="panel panel-default searchResult">
                   <div class="panel-body">
-                    <h4>${data[key].metadata.title}</h4>
+                    <h4 class="resourceCard" data-key="${key}">${data[key].metadata.title}</h4>
                   </div>
                 </div>
               `;
             }
+          });
+
+          // Add event listeners to the resource cards
+          mainElement.querySelectorAll('.resourceCard').forEach(card => {
+            card.addEventListener('click', function(event) {
+              event.preventDefault();
+              displayOneResource(keyToUrl[event.target.dataset.key]);
+            });
           });
         }
 
@@ -801,6 +834,18 @@
           });
 
           return matchingData;
+        }
+
+        function displayOneResource(url) {
+          window.location.hash = `displaymetadata=${url}`;
+
+          // Hide finder
+          mainElement.querySelector('#resource_finder').style.display = 'none';
+
+          // Create instance of the resource display
+          self.resource_display.start({}, instance => {
+            mainElement.appendChild(instance.root);
+          });
         }
 
         function clearSearchResults() {
