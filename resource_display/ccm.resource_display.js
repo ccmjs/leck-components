@@ -353,6 +353,7 @@
           if (!metadataStore.version) metadataStore.version = '-';
           if (!metadataStore.date) metadataStore.date = '-';
           if (!metadataStore.description) metadataStore.description = '-';
+          if (!metadataStore.identifier) metadataStore.identifier = '-';
           displayArea.innerHTML = '';
           let newDisplay = '';
 
@@ -389,7 +390,7 @@
 
           newDisplay += `
                 <table class="table">
-                  <caption>Additional information</caption>
+                  <caption>Additional information <a href="mailto:developer@ccmjs.eu?subject=Issue%20with%20${metadataStore.identifier}&body=Here%20is%20some%20additional%20information%3A" class="text-danger pull-right"><span>&#9873;</span> Report issue</a></caption>
                   <tbody>`;
 
           if (metadataStore.license && metadataStore.license.content && metadataStore.license.software) {
@@ -545,8 +546,9 @@
           }
 
           newDisplay += `
-                  </tbody>
-                </table>`;
+              </tbody>
+            </table>
+          `;
 
           if (metadataStore['path-component']) {
             newDisplay += `
