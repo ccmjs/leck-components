@@ -312,9 +312,38 @@
               const appDemoSpace = mainElement.querySelector('#appDemoSpace');
               appDemoSpace.style.border = '1px solid rgba(0,0,0,.5)';
               appDemoSpace.appendChild(instance.root);
+              let componentTag = instance.index.split('-');
+              componentTag.pop();
+              componentTag = componentTag.join('-');
+              displayEmbedCode(componentTag);
               instance.start();
             });
           });
+        }
+
+        function displayEmbedCode(componentTag) {
+          const embedCodeArea = mainElement.querySelector('#embedCodeArea');
+          if (!embedCodeArea) return;
+
+          if (metadataStore['path-component'] && metadataStore['path-config'] && metadataStore['config-key']) {
+            const embedCode = `&lt;script src=&quot;${metadataStore['path-component']}&quot;&gt;&lt;/script&gt;
+&lt;ccm-${componentTag} key='[&quot;ccm.get&quot;,&quot;${metadataStore['path-config']}&quot;,&quot;${metadataStore['config-key']}&quot;]'&gt;&lt;/ccm-${componentTag}&gt;`;
+            embedCodeArea.innerHTML = `
+              <form>
+                <div class="form-group top-buffer">
+                  <label for="embedCodeDisplay">Embed Code</label>
+                  <div class="input-group">
+                    <span class="input-group-btn">
+                      <button class="btn btn-success copyToClipboardButtonEmbed" type="button" data-copytext="${embedCode}">Copy</button>
+                    </span>
+                    <input type="text" class="form-control" id="embedCodeDisplay" readonly value="${embedCode}">
+                  </div>
+                </div>
+              </form>
+            `;
+
+            addCopyEventListeners('copyToClipboardButtonEmbed');
+          }
         }
 
         function renderResourceInformation() {
@@ -337,8 +366,18 @@
               .additionalInfoValue {
                 margin-bottom: 0 !important;
               }
-            </style>
-            <h2>${metadataStore.title}<br><small>Version: ${metadataStore.version}&nbsp;•&nbsp;Published:  ${metadataStore.date}</small></h2>
+            </style>`;
+
+          newDisplay += `
+            <div class="row">
+              <div class="col-xs-4">
+                <h2>${metadataStore.title}<br><small>Version: ${metadataStore.version}&nbsp;•&nbsp;Published:  ${metadataStore.date}</small></h2>
+              </div>
+              <div class="col-xs-8" id="embedCodeArea">
+              </div>
+            </div>`;
+
+          newDisplay += `
             <div class="row">
               <div class="col-md-7">
                 <h4>Description</h4>
@@ -347,39 +386,6 @@
                 <div id="appDemoSpace" style="margin-bottom: 20px;"></div>
               </div>
               <div class="col-md-5">`;
-
-          if (metadataStore['path-component']) {
-            newDisplay += `
-              <form>
-                <div class="form-group">
-                  <label for="urlToComponent">URL to component</label>
-                  <div class="input-group">
-                    <input type="text" class="form-control" id="urlToComponent" readonly value="${metadataStore['path-component']}">
-                    <span class="input-group-btn">
-                      <button class="btn btn-default copyToClipboardButton" type="button" data-copytext="${metadataStore['path-component']}">Copy</button>
-                    </span>
-                  </div>
-                </div>
-              </form>
-            `;
-          }
-
-          if (metadataStore['path-config'] && metadataStore['config-key']) {
-            newDisplay += `
-              <form>
-                <div class="form-group">
-                  <label for="urlToConfigAndKey">Config-Key and URL to configuration file</label>
-                  <div class="input-group">
-                    <span class="input-group-addon"><kbd>${metadataStore['config-key']}</kbd></span>
-                    <input type="text" class="form-control" id="urlToConfigAndKey" readonly value="${metadataStore['path-config']}">
-                    <span class="input-group-btn">
-                      <button class="btn btn-default copyToClipboardButton" type="button" data-copytext="${metadataStore['path-config']}">Copy</button>
-                    </span>
-                  </div>
-                </div>
-              </form>
-            `;
-          }
 
           newDisplay += `
                 <table class="table">
@@ -540,15 +546,53 @@
 
           newDisplay += `
                   </tbody>
-                </table>
+                </table>`;
+
+          if (metadataStore['path-component']) {
+            newDisplay += `
+              <form>
+                <div class="form-group">
+                  <label for="urlToComponent">URL to component</label>
+                  <div class="input-group">
+                    <input type="text" class="form-control" id="urlToComponent" readonly value="${metadataStore['path-component']}">
+                    <span class="input-group-btn">
+                      <button class="btn btn-default copyToClipboardButtonInfo" type="button" data-copytext="${metadataStore['path-component']}">Copy</button>
+                    </span>
+                  </div>
+                </div>
+              </form>
+            `;
+          }
+
+          if (metadataStore['path-config'] && metadataStore['config-key']) {
+            newDisplay += `
+              <form>
+                <div class="form-group">
+                  <label for="urlToConfigAndKey">Config-Key and URL to configuration file</label>
+                  <div class="input-group">
+                    <span class="input-group-addon"><kbd>${metadataStore['config-key']}</kbd></span>
+                    <input type="text" class="form-control" id="urlToConfigAndKey" readonly value="${metadataStore['path-config']}">
+                    <span class="input-group-btn">
+                      <button class="btn btn-default copyToClipboardButtonInfo" type="button" data-copytext="${metadataStore['path-config']}">Copy</button>
+                    </span>
+                  </div>
+                </div>
+              </form>
+            `;
+          }
+
+          newDisplay +=`
               </div>
             </div>
           `;
 
           displayArea.innerHTML = newDisplay;
 
-          // Add event listeners for copy buttons
-          mainElement.querySelectorAll('.copyToClipboardButton').forEach(button => {
+          addCopyEventListeners('copyToClipboardButtonInfo');
+        }
+
+        function addCopyEventListeners(className) {
+          mainElement.querySelectorAll(`.${className}`).forEach(button => {
             button.addEventListener('click', function(event) {
               event.preventDefault();
               copyToClipboard(event.target.dataset.copytext);
