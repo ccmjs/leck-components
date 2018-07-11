@@ -61,7 +61,7 @@
        * Stores the metadata of the resource, that should be displayed
        * @type {{}}
        */
-      let metadataToDisplay = {};
+      let metadataStore = {};
 
       /**
        * starts the instance
@@ -291,8 +291,9 @@
         function loadResource(url) {
           fetchMetadata(url)
             .then(metadata => {
-              metadataToDisplay = metadata;
-              renderResource();
+              metadataStore = metadata;
+              renderResourceInformation();
+              startResourceDemo();
             });
         }
 
@@ -301,14 +302,28 @@
           return await data.json();
         }
 
-        // ${metadataToDisplay.}
-        function renderResource() {
+        function startResourceDemo() {
+          if (!metadataStore['path-component'] || !metadataStore['path-config'] || !metadataStore['config-key']) {
+            return;
+          }
+
+          self.ccm.get(metadataStore['path-config'], metadataStore['config-key'], config => {
+            self.ccm.instance(metadataStore['path-component'], config, instance => {
+              const appDemoSpace = mainElement.querySelector('#appDemoSpace');
+              appDemoSpace.style.border = '1px solid rgba(0,0,0,.5)';
+              appDemoSpace.appendChild(instance.root);
+              instance.start();
+            });
+          });
+        }
+
+        function renderResourceInformation() {
           const displayArea = mainElement.querySelector('#resourceDisplayArea');
           // Replace values that are not present with " - "
-          if (!metadataToDisplay.title) metadataToDisplay.title = '-';
-          if (!metadataToDisplay.version) metadataToDisplay.version = '-';
-          if (!metadataToDisplay.date) metadataToDisplay.date = '-';
-          if (!metadataToDisplay.description) metadataToDisplay.description = '-';
+          if (!metadataStore.title) metadataStore.title = '-';
+          if (!metadataStore.version) metadataStore.version = '-';
+          if (!metadataStore.date) metadataStore.date = '-';
+          if (!metadataStore.description) metadataStore.description = '-';
           displayArea.innerHTML = '';
           let newDisplay = '';
 
@@ -323,23 +338,25 @@
                 margin-bottom: 0 !important;
               }
             </style>
-            <h2>${metadataToDisplay.title}<br><small>Version: ${metadataToDisplay.version}&nbsp;•&nbsp;Published:  ${metadataToDisplay.date}</small></h2>
+            <h2>${metadataStore.title}<br><small>Version: ${metadataStore.version}&nbsp;•&nbsp;Published:  ${metadataStore.date}</small></h2>
             <div class="row">
               <div class="col-md-7">
                 <h4>Description</h4>
-                <div style="white-space: pre-line; margin-bottom: 20px;">${metadataToDisplay.description}</div>
+                <div style="white-space: pre-line; margin-bottom: 20px;">${metadataStore.description}</div>
+                <h4>Demo</h4>
+                <div id="appDemoSpace" style="margin-bottom: 20px;"></div>
               </div>
               <div class="col-md-5">`;
 
-          if (metadataToDisplay['path-component']) {
+          if (metadataStore['path-component']) {
             newDisplay += `
               <form>
                 <div class="form-group">
                   <label for="urlToComponent">URL to component</label>
                   <div class="input-group">
-                    <input type="text" class="form-control" id="urlToComponent" readonly value="${metadataToDisplay['path-component']}">
+                    <input type="text" class="form-control" id="urlToComponent" readonly value="${metadataStore['path-component']}">
                     <span class="input-group-btn">
-                      <button class="btn btn-default copyToClipboardButton" type="button" data-copytext="${metadataToDisplay['path-component']}">Copy</button>
+                      <button class="btn btn-default copyToClipboardButton" type="button" data-copytext="${metadataStore['path-component']}">Copy</button>
                     </span>
                   </div>
                 </div>
@@ -347,16 +364,16 @@
             `;
           }
 
-          if (metadataToDisplay['path-config'] && metadataToDisplay['config-key']) {
+          if (metadataStore['path-config'] && metadataStore['config-key']) {
             newDisplay += `
               <form>
                 <div class="form-group">
                   <label for="urlToConfigAndKey">Config-Key and URL to configuration file</label>
                   <div class="input-group">
-                    <span class="input-group-addon"><kbd>${metadataToDisplay['config-key']}</kbd></span>
-                    <input type="text" class="form-control" id="urlToConfigAndKey" readonly value="${metadataToDisplay['path-config']}">
+                    <span class="input-group-addon"><kbd>${metadataStore['config-key']}</kbd></span>
+                    <input type="text" class="form-control" id="urlToConfigAndKey" readonly value="${metadataStore['path-config']}">
                     <span class="input-group-btn">
-                      <button class="btn btn-default copyToClipboardButton" type="button" data-copytext="${metadataToDisplay['path-config']}">Copy</button>
+                      <button class="btn btn-default copyToClipboardButton" type="button" data-copytext="${metadataStore['path-config']}">Copy</button>
                     </span>
                   </div>
                 </div>
@@ -369,84 +386,84 @@
                   <caption>Additional information</caption>
                   <tbody>`;
 
-          if (metadataToDisplay.license && metadataToDisplay.license.content && metadataToDisplay.license.software) {
+          if (metadataStore.license && metadataStore.license.content && metadataStore.license.software) {
             newDisplay += `
               <tr>
                 <td>
                   <div class="additionalInfoHeader">Content-License</div>
-                  <div class="h4 additionalInfoValue">${metadataToDisplay.license.content}</div>
+                  <div class="h4 additionalInfoValue">${metadataStore.license.content}</div>
                 </td>
                 <td>
                   <div class="additionalInfoHeader">Software-License</div>
-                  <div class="h4 additionalInfoValue">${metadataToDisplay.license.software}</div>
+                  <div class="h4 additionalInfoValue">${metadataStore.license.software}</div>
                 </td>
               </tr>
             `;
-          } else if (metadataToDisplay.license && metadataToDisplay.license.content) {
+          } else if (metadataStore.license && metadataStore.license.content) {
             newDisplay += `
               <tr>
                 <td colspan="2">
                   <div class="additionalInfoHeader">Content-License</div>
-                  <div class="h4 additionalInfoValue">${metadataToDisplay.license.content}</div>
+                  <div class="h4 additionalInfoValue">${metadataStore.license.content}</div>
                 </td>
               </tr>
             `;
-          } else if (metadataToDisplay.license && metadataToDisplay.license.software) {
+          } else if (metadataStore.license && metadataStore.license.software) {
             newDisplay += `
               <tr>
                 <td colspan="2">
                   <div class="additionalInfoHeader">Software-License</div>
-                  <div class="h4 additionalInfoValue">${metadataToDisplay.license.software}</div>
+                  <div class="h4 additionalInfoValue">${metadataStore.license.software}</div>
                 </td>
               </tr>
             `;
           }
 
-          if (metadataToDisplay.subject && metadataToDisplay.category) {
+          if (metadataStore.subject && metadataStore.category) {
             newDisplay += `
               <tr>
                 <td>
                   <div class="additionalInfoHeader">Subject</div>
-                  <div class="h4 additionalInfoValue">${metadataToDisplay.subject}</div>
+                  <div class="h4 additionalInfoValue">${metadataStore.subject}</div>
                 </td>
                 <td>
                   <div class="additionalInfoHeader">Category</div>
-                  <div class="h4 additionalInfoValue">${metadataToDisplay.category}</div>
+                  <div class="h4 additionalInfoValue">${metadataStore.category}</div>
                 </td>
               </tr>
             `;
-          } else if (metadataToDisplay.subject) {
+          } else if (metadataStore.subject) {
             newDisplay += `
               <tr>
                 <td colspan="2">
                   <div class="additionalInfoHeader">Subject</div>
-                  <div class="h4 additionalInfoValue">${metadataToDisplay.subject}</div>
+                  <div class="h4 additionalInfoValue">${metadataStore.subject}</div>
                 </td>
               </tr>
             `;
-          } else if (metadataToDisplay.category) {
+          } else if (metadataStore.category) {
             newDisplay += `
               <tr>
                 <td colspan="2">
                   <div class="additionalInfoHeader">Category</div>
-                  <div class="h4 additionalInfoValue">${metadataToDisplay.category}</div>
+                  <div class="h4 additionalInfoValue">${metadataStore.category}</div>
                 </td>
               </tr>
             `;
           }
 
-          if (metadataToDisplay.tags) {
+          if (metadataStore.tags) {
             newDisplay += `
               <tr>
                 <td colspan="2">
                   <div class="additionalInfoHeader">Tags</div>
-                  <div class="h4 additionalInfoValue">${metadataToDisplay.tags}</div>
+                  <div class="h4 additionalInfoValue">${metadataStore.tags}</div>
                 </td>
               </tr>
             `;
           }
 
-          if (metadataToDisplay.language) {
+          if (metadataStore.language) {
             newDisplay += `
               <tr>
                 <td colspan="2">
@@ -454,7 +471,7 @@
                   <div class="h4 additionalInfoValue">`;
 
             let languageDisplay = [];
-            metadataToDisplay.language.split(/[ ,]+/).forEach(lang => {
+            metadataStore.language.split(/[ ,]+/).forEach(lang => {
               languageDisplay.push(languages[lang]);
             });
             newDisplay += languageDisplay.join(', ');
@@ -466,56 +483,56 @@
             `;
           }
 
-          if (metadataToDisplay.bloomTaxonomy) {
+          if (metadataStore.bloomTaxonomy) {
             newDisplay += `
               <tr>
                 <td colspan="2">
                   <div class="additionalInfoHeader">Bloom’s Taxonomy</div>
-                  <div class="h4 additionalInfoValue">${metadataToDisplay.bloomTaxonomy}</div>
+                  <div class="h4 additionalInfoValue">${metadataStore.bloomTaxonomy}</div>
                 </td>
               </tr>
             `;
           }
 
-          if (metadataToDisplay.creator && metadataToDisplay.contributor) {
+          if (metadataStore.creator && metadataStore.contributor) {
             newDisplay += `
               <tr>
                 <td>
                   <div class="additionalInfoHeader">Creator</div>
-                  <div class="h4 additionalInfoValue">${metadataToDisplay.creator}</div>
+                  <div class="h4 additionalInfoValue">${metadataStore.creator}</div>
                 </td>
                 <td>
                   <div class="additionalInfoHeader">Contributor</div>
-                  <div class="h4 additionalInfoValue">${metadataToDisplay.contributor}</div>
+                  <div class="h4 additionalInfoValue">${metadataStore.contributor}</div>
                 </td>
               </tr>
             `;
-          } else if (metadataToDisplay.creator) {
+          } else if (metadataStore.creator) {
             newDisplay += `
               <tr>
                 <td colspan="2">
                   <div class="additionalInfoHeader">Creator</div>
-                  <div class="h4 additionalInfoValue">${metadataToDisplay.creator}</div>
+                  <div class="h4 additionalInfoValue">${metadataStore.creator}</div>
                 </td>
               </tr>
             `;
-          } else if (metadataToDisplay.contributor) {
+          } else if (metadataStore.contributor) {
             newDisplay += `
               <tr>
                 <td colspan="2">
                   <div class="additionalInfoHeader">Contributor</div>
-                  <div class="h4 additionalInfoValue">${metadataToDisplay.contributor}</div>
+                  <div class="h4 additionalInfoValue">${metadataStore.contributor}</div>
                 </td>
               </tr>
             `;
           }
 
-          if (metadataToDisplay.publisher) {
+          if (metadataStore.publisher) {
             newDisplay += `
               <tr>
                 <td colspan="2">
                   <div class="additionalInfoHeader">Publisher</div>
-                  <div class="h4 additionalInfoValue">${metadataToDisplay.publisher}</div>
+                  <div class="h4 additionalInfoValue">${metadataStore.publisher}</div>
                 </td>
               </tr>
             `;
