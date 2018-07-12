@@ -379,21 +379,31 @@
         }
         
         function downloadApp(componentTag) {
-          
-        }
-
-        function downloadWidget(componentTag) {
-          const componentFileName = metadataStore['path-component'].split('/').pop();
-          const configFileName = metadataStore['path-config'].split('/').pop();
-
           fetch('https://ccmjs.github.io/leck-components/resource_display/resource/iBooksWidgetBoilerplate/index.html')
             .then(htmlFileBoilerplate => {
               htmlFileBoilerplate.text().then(htmlFileContent => {
-                const htmlFile = htmlFileContent
-                  .replace('$$COMPONENT-FILE$$', componentFileName)
-                  .replace(/\$\$COMPONENT-TAG\$\$/g, componentTag)
-                  .replace('$$CONFIG-FILE$$', configFileName)
-                  .replace('$$CONFIG-KEY$$', metadataStore['config-key']);
+                fetch(metadataStore['path-component'])
+                  .then(componentFile => {
+                    fetch(metadataStore['path-config'])
+                      .then(configFile => {
+                        let widgetZip = new JSZip();
+                        widgetZip.file('index.html', replaceHtmlFileContent(htmlFileContent, componentTag));
+                        widgetZip.file(getComponentFilename(), componentFile.blob());
+                        widgetZip.file(getConfigFilename(), configFile.blob());
+                        widgetZip.generateAsync({type: "blob"})
+                          .then(function (content) {
+                            saveAs(content, `${componentTag}.zip`);
+                          });
+                      });
+                  });
+              });
+            });
+        }
+
+        function downloadWidget(componentTag) {
+          fetch('https://ccmjs.github.io/leck-components/resource_display/resource/iBooksWidgetBoilerplate/index.html')
+            .then(htmlFileBoilerplate => {
+              htmlFileBoilerplate.text().then(htmlFileContent => {
                 fetch('https://ccmjs.github.io/leck-components/resource_display/resource/iBooksWidgetBoilerplate/Info.plist')
                   .then(infoFile => {
                     fetch('https://ccmjs.github.io/leck-components/resource_display/resource/iBooksWidgetBoilerplate/Default.png')
@@ -403,11 +413,11 @@
                             fetch(metadataStore['path-config'])
                               .then(configFile => {
                                 let widgetZip = new JSZip();
-                                widgetZip.folder(`${componentTag}.wdgt`).file('index.html', htmlFile);
+                                widgetZip.folder(`${componentTag}.wdgt`).file('index.html', replaceHtmlFileContent(htmlFileContent, componentTag));
                                 widgetZip.folder(`${componentTag}.wdgt`).file('Info.plist', infoFile.blob());
                                 widgetZip.folder(`${componentTag}.wdgt`).file('Default.png', imageFile.blob());
-                                widgetZip.folder(`${componentTag}.wdgt`).file(componentFileName, componentFile.blob());
-                                widgetZip.folder(`${componentTag}.wdgt`).file(configFileName, configFile.blob());
+                                widgetZip.folder(`${componentTag}.wdgt`).file(getComponentFilename(), componentFile.blob());
+                                widgetZip.folder(`${componentTag}.wdgt`).file(getConfigFilename(), configFile.blob());
                                 widgetZip.generateAsync({type:"blob"})
                                   .then(function (content) {
                                     saveAs(content, `${componentTag}.zip`);
@@ -418,6 +428,22 @@
                   });
               });
             });
+        }
+
+        function getComponentFilename() {
+          return metadataStore['path-component'].split('/').pop();
+        }
+
+        function getConfigFilename() {
+          return metadataStore['path-config'].split('/').pop();
+        }
+
+        function replaceHtmlFileContent(htmlFileContent, componentTag) {
+          return htmlFileContent
+            .replace('$$COMPONENT-FILE$$', getComponentFilename())
+            .replace(/\$\$COMPONENT-TAG\$\$/g, componentTag)
+            .replace('$$CONFIG-FILE$$', getConfigFilename())
+            .replace('$$CONFIG-KEY$$', metadataStore['config-key']);
         }
 
         function renderResourceInformation() {
