@@ -1,13 +1,13 @@
 {
   "html-quiz_2fa738e7-8f4b-42e7-9819-5e34e78127c9": {
-    "metadata": "http://localhost:5000/dms_data/data/2fa738e7-8f4b-42e7-9819-5e34e78127c9.json",
+    "metadata": "../dms_data/data/2fa738e7-8f4b-42e7-9819-5e34e78127c9.json",
     "screenshots": [
       "https://ccmjs.github.io/akless-components/quiz/resources/preview_1.png",
       "https://ccmjs.github.io/akless-components/quiz/resources/preview_2.png"
     ]
   },
   "business-cloze_73a250ae-6979-45fe-a3ba-5c99be76d66f": {
-    "metadata": "http://localhost:5000/dms_data/data/73a250ae-6979-45fe-a3ba-5c99be76d66f.json",
+    "metadata": "../dms_data/data/73a250ae-6979-45fe-a3ba-5c99be76d66f.json",
     "factories": [
       {
         "url": "https://ccmjs.github.io/akless-components/cloze_builder/versions/ccm.cloze_builder-2.2.0.js",
