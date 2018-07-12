@@ -42,6 +42,7 @@
         }
       },
       css: [ 'ccm.load', 'https://ccmjs.github.io/leck-components/css/bootstrap.min.css', 'https://ccmjs.github.io/leck-components/css/default.css' ],
+      js: [ 'ccm.load', [ 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.5/jszip.min.js', 'https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.8/FileSaver.min.js' ] ],
       no_bootstrap_container: false // Set to true if embedded on a site that already has a bootstrap container div
     },
 
@@ -316,6 +317,7 @@
               componentTag.pop();
               componentTag = componentTag.join('-');
               displayEmbedCode(componentTag);
+              generateResourceDownloads(componentTag);
               instance.start();
             });
           });
@@ -346,6 +348,78 @@
           }
         }
 
+        function generateResourceDownloads(componentTag) {
+          const resourceDownloadArea = mainElement.querySelector('#resourceDownloadArea');
+          if (!resourceDownloadArea) return;
+
+          if (!metadataStore['path-component'] || !metadataStore['path-config'] || !metadataStore['config-key']) {
+            return;
+          }
+
+          resourceDownloadArea.innerHTML = `
+            <form>
+              <div class="form-group top-buffer">
+                <div class="btn-group-vertical btn-block" style="width: 100%;" role="group">
+                  <a id="downloadAppButton" class="btn btn-primary" href="#" role="button" data-componenttag="${componentTag}">Download App</a>
+                  <a id="downloadWidgetButton" class="btn btn-warning" href="#" role="button" data-componenttag="${componentTag}">iBooks Author</a>
+                </div>
+              </div>
+            </form>
+          `;
+
+          resourceDownloadArea.querySelector('#downloadAppButton').addEventListener('click', function (event) {
+            event.preventDefault();
+            downloadApp(event.target.dataset.componenttag);
+          });
+
+          resourceDownloadArea.querySelector('#downloadWidgetButton').addEventListener('click', function (event) {
+            event.preventDefault();
+            downloadWidget(event.target.dataset.componenttag);
+          });
+        }
+        
+        function downloadApp(componentTag) {
+          
+        }
+
+        function downloadWidget(componentTag) {
+          const componentFileName = metadataStore['path-component'].split('/').pop();
+          const configFileName = metadataStore['path-config'].split('/').pop();
+
+          fetch('https://ccmjs.github.io/leck-components/resource_display/resource/iBooksWidgetBoilerplate/index.html')
+            .then(htmlFileBoilerplate => {
+              htmlFileBoilerplate.text().then(htmlFileContent => {
+                const htmlFile = htmlFileContent
+                  .replace('$$COMPONENT-FILE$$', componentFileName)
+                  .replace(/\$\$COMPONENT-TAG\$\$/g, componentTag)
+                  .replace('$$CONFIG-FILE$$', configFileName)
+                  .replace('$$CONFIG-KEY$$', metadataStore['config-key']);
+                fetch('https://ccmjs.github.io/leck-components/resource_display/resource/iBooksWidgetBoilerplate/Info.plist')
+                  .then(infoFile => {
+                    fetch('https://ccmjs.github.io/leck-components/resource_display/resource/iBooksWidgetBoilerplate/Default.png')
+                      .then(imageFile => {
+                        fetch(metadataStore['path-component'])
+                          .then(componentFile => {
+                            fetch(metadataStore['path-config'])
+                              .then(configFile => {
+                                let widgetZip = new JSZip();
+                                widgetZip.folder(`${componentTag}.wdgt`).file('index.html', htmlFile);
+                                widgetZip.folder(`${componentTag}.wdgt`).file('Info.plist', infoFile.blob());
+                                widgetZip.folder(`${componentTag}.wdgt`).file('Default.png', imageFile.blob());
+                                widgetZip.folder(`${componentTag}.wdgt`).file(componentFileName, componentFile.blob());
+                                widgetZip.folder(`${componentTag}.wdgt`).file(configFileName, configFile.blob());
+                                widgetZip.generateAsync({type:"blob"})
+                                  .then(function (content) {
+                                    saveAs(content, `${componentTag}.zip`);
+                                  });
+                              });
+                          });
+                      });
+                  });
+              });
+            });
+        }
+
         function renderResourceInformation() {
           const displayArea = mainElement.querySelector('#resourceDisplayArea');
           // Replace values that are not present with " - "
@@ -371,10 +445,12 @@
 
           newDisplay += `
             <div class="row">
-              <div class="col-xs-4">
+              <div class="col-sm-4">
                 <h2>${metadataStore.title}<br><small>Version: ${metadataStore.version}&nbsp;•&nbsp;Published:  ${metadataStore.date}</small></h2>
               </div>
-              <div class="col-xs-8" id="embedCodeArea">
+              <div class="col-sm-3" id="resourceDownloadArea">
+              </div>
+              <div class="col-sm-5" id="embedCodeArea">
               </div>
             </div>`;
 
