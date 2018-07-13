@@ -32,6 +32,11 @@
           "inner": [
             {
               "inner": `
+              <div id="spinner" class="spinner popup no-margin">
+                <div class="bounce1"></div>
+                <div class="bounce2"></div>
+                <div class="bounce3"></div>
+              </div>
               <div class="row">
                 <div id="resourceDisplayArea" class="col-xs-12">
                 </div>
@@ -295,6 +300,9 @@
               metadataStore = metadata;
               renderResourceInformation();
               startResourceDemo();
+            })
+            .catch(error => {
+              console.log('loadResource error:', error);
             });
         }
 
@@ -382,6 +390,7 @@
         }
         
         function downloadApp(componentTag) {
+          showSpinner();
           fetch('https://ccmjs.github.io/leck-components/resource_display/resource/iBooksWidgetBoilerplate/index.html')
             .then(htmlFileBoilerplate => {
               htmlFileBoilerplate.text().then(htmlFileContent => {
@@ -395,6 +404,7 @@
                         widgetZip.file(getConfigFilename(), configFile.blob());
                         widgetZip.generateAsync({type: "blob"})
                           .then(function (content) {
+                            hideSpinner();
                             saveAs(content, `${componentTag}.zip`);
                           });
                       });
@@ -404,6 +414,7 @@
         }
 
         function downloadWidget(componentTag) {
+          showSpinner();
           fetch('https://ccmjs.github.io/leck-components/resource_display/resource/iBooksWidgetBoilerplate/index.html')
             .then(htmlFileBoilerplate => {
               htmlFileBoilerplate.text().then(htmlFileContent => {
@@ -423,6 +434,7 @@
                                 widgetZip.folder(`${componentTag}.wdgt`).file(getConfigFilename(), configFile.blob());
                                 widgetZip.generateAsync({type:"blob"})
                                   .then(function (content) {
+                                    hideSpinner();
                                     saveAs(content, `${componentTag}.zip`);
                                   });
                               });
@@ -695,6 +707,8 @@
 
           displayArea.innerHTML = newDisplay;
 
+          hideSpinner();
+
           addCopyEventListeners('copyToClipboardButtonInfo');
         }
 
@@ -726,6 +740,14 @@
             document.getSelection().removeAllRanges();    // Unselect everything on the HTML document
             document.getSelection().addRange(selected);   // Restore the original selection
           }
+        }
+
+        function showSpinner() {
+          mainElement.querySelector('#spinner').style.display = 'block';
+        }
+
+        function hideSpinner() {
+          mainElement.querySelector('#spinner').style.display = 'none';
         }
 
         if ( callback ) callback();
