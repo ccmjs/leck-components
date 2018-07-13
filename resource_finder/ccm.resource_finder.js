@@ -95,7 +95,7 @@
               </div>
               <div class="row">
                 <div class="col-xs-12">
-                  <span class="greyHeading">Search results</span>
+                  <span class="greyHeading">Results</span>
                   <form class="form-inline pull-right">
                     <div class="form-group">
                       <label for="sortSelector">Sort by:</label>
@@ -687,10 +687,14 @@
           const data = applyAllFilters(registryData);
           Object.keys(data).forEach(key => {
             if (data[key].metadata) {
+              if (!data[key].metadata.title) data[key].metadata.title = '-';
+              if (!data[key].metadata.creator) data[key].metadata.creator = '-';
+              if (!data[key].metadata.date) data[key].metadata.date = '-';
               mainElement.querySelector('#searchResults').innerHTML += `
-                <div class="panel panel-default searchResult">
-                  <div class="panel-body">
-                    <h4 class="resourceCard" data-key="${key}">${data[key].metadata.title}</h4>
+                <div class="panel panel-default searchResult resourceCard" data-key="${key}">
+                  <div class="panel-body" style="width: 100%;">
+                    <h4 style="margin-top: 0;" class="containText">${data[key].metadata.title}</h4>
+                    <span class="containText">${data[key].metadata.creator}</span><span class="pull-right containText">${data[key].metadata.date}</span>
                   </div>
                 </div>
               `;
@@ -701,11 +705,24 @@
           mainElement.querySelectorAll('.resourceCard').forEach(card => {
             card.addEventListener('click', function(event) {
               event.preventDefault();
-              navigateToResource(keyToUrl[event.target.dataset.key]);
+              event.stopPropagation();
+              navigateToResource(keyToUrl[getResourceKey(event.target)]);
             });
           });
 
           hideSpinner();
+        }
+
+        /**
+         * Recursively check parent nodes for resource key
+         * @param node
+         */
+        function getResourceKey(node) {
+          if (node.dataset.key) {
+            return node.dataset.key;
+          } else {
+            return getResourceKey(node.parentNode);
+          }
         }
 
         function applyAllFilters(data) {

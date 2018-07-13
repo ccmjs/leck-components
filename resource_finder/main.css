@@ -16,3 +16,15 @@
   color: rgba(0,0,0,.5);
   font-weight: 500;
 }
+
+.resourceCard:hover {
+  cursor: pointer;
+  background-color: #e6e6e6;
+  border-color: #adadad;
+}
+
+.containText {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
