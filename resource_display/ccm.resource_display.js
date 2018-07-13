@@ -516,6 +516,7 @@
                 top: 0;
                 background: white;
                 z-index: 9000;
+                overflow: auto;
               }
             </style>`;
 
