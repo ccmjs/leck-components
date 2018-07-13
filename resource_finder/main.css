@@ -10,3 +10,9 @@
   width: 20em;
   margin: 5px;
 }
+
+.greyHeading {
+  font-size: 1rem;
+  color: rgba(0,0,0,.5);
+  font-weight: 500;
+}

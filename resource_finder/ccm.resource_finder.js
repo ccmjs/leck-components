@@ -95,6 +95,7 @@
               </div>
               <div class="row">
                 <div class="col-xs-12">
+                  <span class="greyHeading">Search results</span>
                   <div class="panel panel-default">
                     <div id="searchResults" class="panel-body">
                     </div>
