@@ -640,8 +640,10 @@
                 displayResources();
               });
           })
-          .catch(error => console.log(error.message))
-          .then(() => hideSpinner());
+          .catch(error => {
+            console.log(error.message);
+            hideSpinner();
+          });
 
         async function loadRegistry() {
           const response = await fetch(self.registry);
@@ -660,6 +662,7 @@
         }
 
         function displayResources() {
+          showSpinner();
           clearSearchResults();
           const data = applyAllFilters(registryData);
           Object.keys(data).forEach(key => {
@@ -681,6 +684,8 @@
               navigateToResource(keyToUrl[event.target.dataset.key]);
             });
           });
+
+          hideSpinner();
         }
 
         function applyAllFilters(data) {
@@ -879,6 +884,10 @@
 
         function clearResourceDisplay() {
           mainElement.querySelector('#resourceDisplaySpace').innerHTML = '';
+        }
+
+        function showSpinner() {
+          mainElement.querySelector('#spinner').style.display = 'block';
         }
 
         function hideSpinner() {
