@@ -48,7 +48,7 @@
         }
       },
       css: [ 'ccm.load', 'https://ccmjs.github.io/leck-components/css/bootstrap.min.css', 'https://ccmjs.github.io/leck-components/css/default.css' ],
-      js: [ 'ccm.load', [ 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.5/jszip.min.js', 'https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.8/FileSaver.min.js' ] ],
+      js: [ 'ccm.load', [ 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.5/jszip.min.js', 'https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.8/FileSaver.min.js', 'https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.0/qrcode.min.js' ] ],
       no_bootstrap_container: false // Set to true if embedded on a site that already has a bootstrap container div
     },
 
@@ -311,6 +311,7 @@
               metadataStore = metadata;
               renderResourceInformation();
               startResourceDemo();
+              createQRCodeForFullscreenDemo();
             })
             .catch(error => {
               console.log('loadResource error:', error);
@@ -343,6 +344,20 @@
               instance.start();
             });
           });
+        }
+
+        function createQRCodeForFullscreenDemo() {
+          let fullscreenURL = window.location.href;
+          if (!fullscreenURL.includes('demofullscreen=true')) {
+            fullscreenURL += '&demofullscreen=true';
+          }
+          let demoQRCode = qrcode(0, 'M');
+          demoQRCode.addData(fullscreenURL);
+          demoQRCode.make();
+          let qrCodeSVGTag = document.createElement('div');
+          qrCodeSVGTag.innerHTML = demoQRCode.createSvgTag().trim();
+          qrCodeSVGTag = qrCodeSVGTag.firstChild;
+          mainElement.querySelector('#fullscreenDemoQRCodeArea').appendChild(qrCodeSVGTag);
         }
 
         function displayEmbedCode(componentTag) {
@@ -677,6 +692,17 @@
                 <td colspan="2">
                   <div class="additionalInfoHeader">Publisher</div>
                   <div class="h4 additionalInfoValue">${metadataStore.publisher}</div>
+                </td>
+              </tr>
+            `;
+          }
+
+          if (metadataStore['path-component'] && metadataStore['path-config'] && metadataStore['config-key']) {
+            newDisplay += `
+              <tr>
+                <td colspan="2">
+                  <div class="additionalInfoHeader">QR Code to fullscreen demo</div>
+                  <div id="fullscreenDemoQRCodeArea"></div>
                 </td>
               </tr>
             `;
