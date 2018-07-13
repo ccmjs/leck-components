@@ -643,6 +643,8 @@
               case 'displaymetadata':
                 displayOneResource(value);
                 break;
+              case 'demofullscreen':
+                break;
               default:
                 console.log(`Unknown URL parameter: ${key}`);
             }
