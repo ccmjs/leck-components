@@ -517,6 +517,7 @@
                 background: white;
                 z-index: 9000;
                 overflow: auto;
+                -webkit-overflow-scrolling: touch;
               }
             </style>`;
 
