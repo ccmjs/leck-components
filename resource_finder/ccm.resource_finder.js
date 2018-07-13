@@ -96,6 +96,23 @@
               <div class="row">
                 <div class="col-xs-12">
                   <span class="greyHeading">Search results</span>
+                  <form class="form-inline pull-right">
+                    <div class="form-group">
+                      <label for="sortSelector">Sort by:</label>
+                      <select id="sortSelector">
+                        <option>Release date (new-old)</option>
+                        <option>Release date (old-new)</option>
+                        <option>Name (a-z)</option>
+                        <option>Name (z-a)</option>
+                        <option>Creator (a-z)</option>
+                        <option>Creator (z-a)</option>
+                      </select>
+                    </div>
+                  </form>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-xs-12">
                   <div class="panel panel-default">
                     <div id="searchResults" class="panel-body">
                     </div>
