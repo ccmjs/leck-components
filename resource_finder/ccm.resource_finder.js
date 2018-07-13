@@ -100,12 +100,12 @@
                     <div class="form-group">
                       <label for="sortSelector">Sort by:</label>
                       <select id="sortSelector">
-                        <option>Release date (new-old)</option>
-                        <option>Release date (old-new)</option>
-                        <option>Name (a-z)</option>
-                        <option>Name (z-a)</option>
-                        <option>Creator (a-z)</option>
-                        <option>Creator (z-a)</option>
+                        <option value="dateNewOld">Release date (new-old)</option>
+                        <option value="dateOldNew">Release date (old-new)</option>
+                        <option value="nameAZ">Name (a-z)</option>
+                        <option value="nameZA">Name (z-a)</option>
+                        <option value="creatorAZ">Creator (a-z)</option>
+                        <option value="creatorZA">Creator (z-a)</option>
                       </select>
                     </div>
                   </form>
@@ -149,21 +149,16 @@
 
       /**
        * Registry of all resources
-       * @type {{}}
+       * @type {[]}
        */
-      let registryData = {};
-
-      /**
-       * Maps metadata keys to there urls
-       * @type {{}}
-       */
-      let keyToUrl = {};
+      let registryData = [];
 
       /**
        * Value of all filters
        * @type {{}}
        */
       let filter = {
+        sort: 'dateNewOld',
         category: '',
         tags: [],
         languages: [],
@@ -570,6 +565,38 @@
           options: contentLicenseOptions
         })[0].selectize;
 
+        mainElement.querySelector('#sortSelector').addEventListener('input', function () {
+          filter.sort = this.value;
+          showSpinner();
+          sortRegistryData();
+          displayResources();
+        });
+
+        function sortRegistryData() {
+          switch (filter.sort) {
+            case 'dateNewOld':
+              registryData.sort((a, b) => {
+                let firstDateParams = a.metadata.date.split('-');
+                firstDateParams = firstDateParams.map(num => parseInt(num, 10));
+                let secondDateParams = b.metadata.date.split('-');
+                secondDateParams = secondDateParams.map(num => parseInt(num, 10));
+                const firstDate = new Date(firstDateParams[0], firstDateParams[1] - 1, firstDateParams[2]);
+                const secondDate = new Date(secondDateParams[0], secondDateParams[1] - 1, secondDateParams[2]);
+                if (firstDate < secondDate) {
+                  return -1;
+                }
+                if (firstDate > secondDate) {
+                  return 1;
+                }
+                return 0;
+              });
+              break;
+            default:
+              console.log('Unknown sort');
+              break;
+          }
+        }
+
         /**
          * Trigger a search by clicking on the search button or hitting the enter key while in search term input
          */
@@ -628,8 +655,7 @@
 
             clearResourceDisplay();
           } else {
-            const url = urlHash.match('displaymetadata=([^&]+)');
-            displayOneResource(url[1]);
+            displayOneResource();
           }
         });
 
@@ -641,7 +667,7 @@
             const value = parameter.split('=')[1];
             switch (key) {
               case 'displaymetadata':
-                displayOneResource(value);
+                displayOneResource();
                 break;
               case 'demofullscreen':
                 break;
@@ -653,10 +679,13 @@
 
         loadRegistry()
           .then(data => {
-            registryData = data;
-            // Load all metadata that is not yet present as an object
-            Promise.all(Object.keys(registryData).map(fetchMetadata))
+            Object.keys(data).forEach(key => {
+              registryData.push(data[key]);
+            });
+            // Load all metadata
+            Promise.all(registryData.map(fetchMetadata))
               .then(() => {
+                sortRegistryData();
                 displayResources();
               });
           })
@@ -670,14 +699,15 @@
           return await response.json();
         }
 
-        async function fetchMetadata(key) {
-          keyToUrl[key] = registryData[key].metadata;
-          const data = await fetch(registryData[key].metadata);
+        async function fetchMetadata(object, index) {
+          const data = await fetch(object.metadata);
           const content = await data.json();
           if (content.metaFormat === 'ccm-meta' && content.metaVersion === '1.0.0') {
-            registryData[key].metadata = content;
+            const metaURL = registryData[index].metadata;
+            registryData[index].metadata = content;
+            registryData[index].formerMetaURL = metaURL;
           } else {
-            delete registryData[key].metadata;
+            delete registryData[index].metadata;
           }
         }
 
@@ -685,16 +715,16 @@
           showSpinner();
           clearSearchResults();
           const data = applyAllFilters(registryData);
-          Object.keys(data).forEach(key => {
-            if (data[key].metadata) {
-              if (!data[key].metadata.title) data[key].metadata.title = '-';
-              if (!data[key].metadata.creator) data[key].metadata.creator = '-';
-              if (!data[key].metadata.date) data[key].metadata.date = '-';
+          data.forEach(object => {
+            if (object.metadata) {
+              if (!object.metadata.title) object.metadata.title = '-';
+              if (!object.metadata.creator) object.metadata.creator = '-';
+              if (!object.metadata.date) object.metadata.date = '-';
               mainElement.querySelector('#searchResults').innerHTML += `
-                <div class="panel panel-default searchResult resourceCard" data-key="${key}">
+                <div class="panel panel-default searchResult resourceCard" data-metaurl="${object.formerMetaURL}">
                   <div class="panel-body" style="width: 100%;">
-                    <h4 style="margin-top: 0;" class="containText">${data[key].metadata.title}</h4>
-                    <span class="containText">${data[key].metadata.creator}</span><span class="pull-right containText">${data[key].metadata.date}</span>
+                    <h4 style="margin-top: 0;" class="containText">${object.metadata.title}</h4>
+                    <span class="containText">${object.metadata.creator}</span><span class="pull-right containText">${object.metadata.date}</span>
                   </div>
                 </div>
               `;
@@ -706,7 +736,7 @@
             card.addEventListener('click', function(event) {
               event.preventDefault();
               event.stopPropagation();
-              navigateToResource(keyToUrl[getResourceKey(event.target)]);
+              navigateToResource(getResourceMetaURL(event.target));
             });
           });
 
@@ -714,14 +744,14 @@
         }
 
         /**
-         * Recursively check parent nodes for resource key
+         * Recursively check parent nodes for meta url
          * @param node
          */
-        function getResourceKey(node) {
-          if (node.dataset.key) {
-            return node.dataset.key;
+        function getResourceMetaURL(node) {
+          if (node.dataset.metaurl) {
+            return node.dataset.metaurl;
           } else {
-            return getResourceKey(node.parentNode);
+            return getResourceMetaURL(node.parentNode);
           }
         }
 
@@ -764,15 +794,16 @@
         function searchByText(text, data) {
           let matchingData = self.ccm.helper.clone(data);
 
-          Object.keys(matchingData).forEach(key => {
+          let index = matchingData.length;
+          while(index--) {
             if (
-              matchingData[key].metadata.title.includes(text) ||
-              matchingData[key].metadata.description.includes(text) ||
-              matchingData[key].metadata.subject.includes(text)
+              matchingData[index].metadata.title.includes(text) ||
+              matchingData[index].metadata.description.includes(text) ||
+              matchingData[index].metadata.subject.includes(text)
             ) {} else {
-              delete matchingData[key];
+              matchingData.splice(index, 1);
             }
-          });
+          }
 
           return matchingData;
         }
@@ -786,13 +817,14 @@
         function searchByCategory(category, data) {
           let matchingData = self.ccm.helper.clone(data);
 
-          Object.keys(matchingData).forEach(key => {
+          let index = matchingData.length;
+          while(index--) {
             if (
-              matchingData[key].metadata.category === category
+              matchingData[index].metadata.category === category
             ) {} else {
-              delete matchingData[key];
+              matchingData.splice(index, 1);
             }
-          });
+          }
 
           return matchingData;
         }
@@ -806,14 +838,15 @@
         function searchByTags(tags, data) {
           let matchingData = self.ccm.helper.clone(data);
 
-          Object.keys(matchingData).forEach(key => {
+          let index = matchingData.length;
+          while(index--) {
             tags.some(tag => {
-              if (!matchingData[key].metadata.tags.includes(tag)) {
-                delete matchingData[key];
+              if (!matchingData[index].metadata.tags.includes(tag)) {
+                matchingData.splice(index, 1);
                 return true;
               }
             });
-          });
+          }
 
           return matchingData;
         }
@@ -827,14 +860,15 @@
         function searchByLanguages(languages, data) {
           let matchingData = self.ccm.helper.clone(data);
 
-          Object.keys(matchingData).forEach(key => {
+          let index = matchingData.length;
+          while(index--) {
             languages.some(language => {
-              if (!matchingData[key].metadata.language.includes(language)) {
-                delete matchingData[key];
+              if (!matchingData[index].metadata.language.includes(language)) {
+                matchingData.splice(index, 1);
                 return true;
               }
             });
-          });
+          }
 
           return matchingData;
         }
@@ -848,13 +882,14 @@
         function searchByBloom(bloom, data) {
           let matchingData = self.ccm.helper.clone(data);
 
-          Object.keys(matchingData).forEach(key => {
+          let index = matchingData.length;
+          while(index--) {
             if (
-              matchingData[key].metadata.bloomTaxonomy === bloom
+              matchingData[index].metadata.bloomTaxonomy === bloom
             ) {} else {
-              delete matchingData[key];
+              matchingData.splice(index, 1);
             }
-          });
+          }
 
           return matchingData;
         }
@@ -868,13 +903,14 @@
         function searchByLicenseSoftware(license, data) {
           let matchingData = self.ccm.helper.clone(data);
 
-          Object.keys(matchingData).forEach(key => {
+          let index = matchingData.length;
+          while(index--) {
             if (
-              matchingData[key].metadata.license.software === license
+              matchingData[index].metadata.license.software === license
             ) {} else {
-              delete matchingData[key];
+              matchingData.splice(index, 1);
             }
-          });
+          }
 
           return matchingData;
         }
@@ -888,13 +924,14 @@
         function searchByLicenseContent(license, data) {
           let matchingData = self.ccm.helper.clone(data);
 
-          Object.keys(matchingData).forEach(key => {
+          let index = matchingData.length;
+          while(index--) {
             if (
-              matchingData[key].metadata.license.content === license
+              matchingData[index].metadata.license.content === license
             ) {} else {
-              delete matchingData[key];
+              matchingData.splice(index, 1);
             }
-          });
+          }
 
           return matchingData;
         }
@@ -903,7 +940,7 @@
           window.location.hash = `displaymetadata=${url}`;
         }
 
-        function displayOneResource(url) {
+        function displayOneResource() {
           clearResourceDisplay();
 
           // Hide finder
