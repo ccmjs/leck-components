@@ -41,6 +41,7 @@
                 <div id="resourceDisplayArea" class="col-xs-12">
                 </div>
               </div>
+              <button id="closeFullscreenButton" class="btn btn-default" type="button" style="display: none; position: fixed; right: 0; top: 0; padding: 5px; z-index: 10000;"><span style="font-size: 1.5rem; line-height: 1;">X</span></button>
               `
             }
           ]
@@ -273,6 +274,11 @@
         const mainElement = this.ccm.helper.html(this.html.main, {
         });
         this.element.appendChild(mainElement);
+        
+        mainElement.querySelector('#closeFullscreenButton').addEventListener('click', function(event) {
+          event.preventDefault();
+          closeFullscreenDemo();
+        });
 
         let urlHash = window.location.hash.substr(1);
         if (urlHash !== '') {
@@ -482,6 +488,15 @@
               .additionalInfoValue {
                 margin-bottom: 0 !important;
               }
+              .fullscreen {
+                position: fixed;
+                width: 100%;
+                height: 100%;
+                left: 0;
+                top: 0;
+                background: white;
+                z-index: 9000;
+              }
             </style>`;
 
           newDisplay += `
@@ -500,7 +515,7 @@
               <div class="col-md-7">
                 <h4>Description</h4>
                 <div style="white-space: pre-line; margin-bottom: 20px;">${metadataStore.description}</div>
-                <h4>Demo</h4>
+                <h4>Demo <button id="demoToFullscreenButton" type="button" class="btn btn-default btn-xs pull-right">Fullscreen</button></h4>
                 <div id="appDemoSpace" style="margin-bottom: 20px;"></div>
               </div>
               <div class="col-md-5">`;
@@ -709,7 +724,24 @@
 
           hideSpinner();
 
+          mainElement.querySelector('#demoToFullscreenButton').addEventListener('click', function(event) {
+            event.preventDefault();
+            showDemoFullscreen();
+          });
+
           addCopyEventListeners('copyToClipboardButtonInfo');
+        }
+
+        function showDemoFullscreen() {
+          mainElement.querySelector('#appDemoSpace').style.marginBottom = '0';
+          mainElement.querySelector('#appDemoSpace').className = 'fullscreen';
+          mainElement.querySelector('#closeFullscreenButton').style.display = 'block';
+        }
+
+        function closeFullscreenDemo() {
+          mainElement.querySelector('#appDemoSpace').style.marginBottom = '20px';
+          mainElement.querySelector('#appDemoSpace').className = '';
+          mainElement.querySelector('#closeFullscreenButton').style.display = 'none';
         }
 
         function addCopyEventListeners(className) {
