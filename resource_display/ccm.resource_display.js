@@ -311,7 +311,10 @@
           self.ccm.get(metadataStore['path-config'], metadataStore['config-key'], config => {
             self.ccm.instance(metadataStore['path-component'], config, instance => {
               const appDemoSpace = mainElement.querySelector('#appDemoSpace');
-              appDemoSpace.style.border = '1px solid rgba(0,0,0,.5)';
+              appDemoSpace.style.border = '1px solid #ddd';
+              appDemoSpace.style.borderRadius = '4px';
+              appDemoSpace.style.boxShadow = '0 1px 1px rgba(0,0,0,.05)';
+              appDemoSpace.style.padding = '9px';
               appDemoSpace.appendChild(instance.root);
               let componentTag = instance.index.split('-');
               componentTag.pop();
