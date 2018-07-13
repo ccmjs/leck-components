@@ -290,6 +290,11 @@
               case 'displaymetadata':
                 loadResource(value);
                 break;
+              case 'demofullscreen':
+                /**
+                 * Note: This gets handled after the resource is displayed
+                 */
+                break;
               default:
                 console.log(`Unknown URL parameter: ${key}`);
             }
@@ -730,15 +735,21 @@
           });
 
           addCopyEventListeners('copyToClipboardButtonInfo');
+
+          if (window.location.hash.substr(1).includes('demofullscreen=true')) {
+            showDemoFullscreen();
+          }
         }
 
         function showDemoFullscreen() {
+          addParameterToURLHash('demofullscreen', 'true');
           mainElement.querySelector('#appDemoSpace').style.marginBottom = '0';
           mainElement.querySelector('#appDemoSpace').className = 'fullscreen';
           mainElement.querySelector('#closeFullscreenButton').style.display = 'block';
         }
 
         function closeFullscreenDemo() {
+          removeParameterFromURLHash('demofullscreen');
           mainElement.querySelector('#appDemoSpace').style.marginBottom = '20px';
           mainElement.querySelector('#appDemoSpace').className = '';
           mainElement.querySelector('#closeFullscreenButton').style.display = 'none';
@@ -751,6 +762,22 @@
               copyToClipboard(event.target.dataset.copytext);
             });
           });
+        }
+
+        function addParameterToURLHash(key, value) {
+          if (window.location.hash.substr(1).includes(`${key}=${value}`)) return;
+
+          if (window.location.hash.substr(1) === '') {
+            window.location.hash = `${key}=${value}`;
+          } else {
+            window.location.hash += `&${key}=${value}`;
+          }
+        }
+
+        function removeParameterFromURLHash(key) {
+          if (!window.location.hash.substr(1).includes(`${key}=`)) return;
+          const removeExpression = new RegExp('&?' + key + '=[^.&]*', 'g');
+          window.location.hash = window.location.hash.replace(removeExpression, '');
         }
 
         // https://hackernoon.com/copying-text-to-clipboard-with-javascript-df4d4988697f
