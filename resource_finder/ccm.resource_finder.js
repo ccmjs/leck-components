@@ -44,7 +44,7 @@
                 </div>
                 <div class="col-md-9">
                   <div class="input-group">
-                    <input type="text" class="form-control" id="searchTerm" placeholder="Search">
+                    <input type="text" class="form-control" id="searchTerm" placeholder="Search (Searches in title, description and subject)">
                     <span class="input-group-btn">
                       <button type="button" id="buttonSearch" class="btn btn-primary">Search</button>
                     </span>
@@ -576,12 +576,7 @@
           switch (filter.sort) {
             case 'dateNewOld':
               registryData.sort((a, b) => {
-                let firstDateParams = a.metadata.date.split('-');
-                firstDateParams = firstDateParams.map(num => parseInt(num, 10));
-                let secondDateParams = b.metadata.date.split('-');
-                secondDateParams = secondDateParams.map(num => parseInt(num, 10));
-                const firstDate = new Date(firstDateParams[0], firstDateParams[1] - 1, firstDateParams[2]);
-                const secondDate = new Date(secondDateParams[0], secondDateParams[1] - 1, secondDateParams[2]);
+                const {firstDate, secondDate} = getDateObjectsFromStrings(a, b);
                 if (firstDate < secondDate) {
                   return -1;
                 }
@@ -591,9 +586,52 @@
                 return 0;
               });
               break;
+            case 'dateOldNew':
+              registryData.sort((a, b) => {
+                const {firstDate, secondDate} = getDateObjectsFromStrings(a, b);
+                if (firstDate > secondDate) {
+                  return -1;
+                }
+                if (firstDate < secondDate) {
+                  return 1;
+                }
+                return 0;
+              });
+              break;
+            case 'nameAZ':
+              registryData.sort((a, b) => {
+                return a.metadata.title.localeCompare(b.metadata.title);
+              });
+              break;
+            case 'nameZA':
+              registryData.sort((a, b) => {
+                return b.metadata.title.localeCompare(a.metadata.title);
+              });
+              break;
+            case 'creatorAZ':
+              registryData.sort((a, b) => {
+                return a.metadata.creator.localeCompare(b.metadata.creator);
+              });
+              break;
+            case 'creatorZA':
+              registryData.sort((a, b) => {
+                return b.metadata.creator.localeCompare(a.metadata.creator);
+              });
+              break;
             default:
               console.log('Unknown sort');
               break;
+          }
+
+          function getDateObjectsFromStrings(a, b) {
+            let firstDateParams = a.metadata.date.split('-');
+            firstDateParams = firstDateParams.map(num => parseInt(num, 10));
+            let secondDateParams = b.metadata.date.split('-');
+            secondDateParams = secondDateParams.map(num => parseInt(num, 10));
+            return {
+              firstDate: new Date(firstDateParams[0], firstDateParams[1] - 1, firstDateParams[2]),
+              secondDate: new Date(secondDateParams[0], secondDateParams[1] - 1, secondDateParams[2])
+            };
           }
         }
 
