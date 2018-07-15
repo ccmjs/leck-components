@@ -48,7 +48,7 @@
         }
       },
       css: [ 'ccm.load', 'https://ccmjs.github.io/leck-components/css/bootstrap.min.css', 'https://ccmjs.github.io/leck-components/css/default.css' ],
-      js: [ 'ccm.load', [ 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.5/jszip.min.js', 'https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.8/FileSaver.min.js', 'https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.0/qrcode.min.js' ] ],
+      js: [ 'ccm.load', [ 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.5/jszip.min.js', '../js/FileSaver.js', 'https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.0/qrcode.min.js' ] ],
       no_bootstrap_container: false // Set to true if embedded on a site that already has a bootstrap container div
     },
 
