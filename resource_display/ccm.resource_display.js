@@ -18,7 +18,7 @@
      * recommended used framework version
      * @type {string}
      */
-    ccm: '../js/ccm-16.6.1.js',
+    ccm: 'https://ccmjs.github.io/leck-components/js/ccm-16.6.1.js',
 
     /**
      * default instance configuration
@@ -48,7 +48,7 @@
         }
       },
       css: [ 'ccm.load', 'https://ccmjs.github.io/leck-components/css/bootstrap.min.css', 'https://ccmjs.github.io/leck-components/css/default.css' ],
-      js: [ 'ccm.load', [ 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.5/jszip.min.js', '../js/FileSaver.js', 'https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.0/qrcode.min.js' ] ],
+      js: [ 'ccm.load', [ 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.5/jszip.min.js', 'https://ccmjs.github.io/leck-components/js/FileSaver.js', 'https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.0/qrcode.min.js' ] ],
       no_bootstrap_container: false // Set to true if embedded on a site that already has a bootstrap container div
     },
 
@@ -296,7 +296,7 @@
                  */
                 break;
               default:
-                console.log(`Unknown URL parameter: ${key}`);
+                //console.log(`Unknown URL parameter: ${key}`);
             }
           });
         }
@@ -365,8 +365,7 @@
           if (!embedCodeArea) return;
 
           if (metadataStore['path-component'] && metadataStore['path-config'] && metadataStore['config-key']) {
-            const embedCode = `&lt;script src=&quot;${metadataStore['path-component']}&quot;&gt;&lt;/script&gt;
-&lt;ccm-${componentTag} key='[&quot;ccm.get&quot;,&quot;${metadataStore['path-config']}&quot;,&quot;${metadataStore['config-key']}&quot;]'&gt;&lt;/ccm-${componentTag}&gt;`;
+            const embedCode = generateEmbedCode(componentTag);
             embedCodeArea.innerHTML = `
               <form>
                 <div class="form-group top-buffer">
@@ -385,6 +384,11 @@
           }
         }
 
+        function generateEmbedCode(componentTag) {
+          return `&lt;script src=&quot;${metadataStore['path-component']}&quot;&gt;&lt;/script&gt;
+&lt;ccm-${componentTag} key='[&quot;ccm.get&quot;,&quot;${metadataStore['path-config']}&quot;,&quot;${metadataStore['config-key']}&quot;]'&gt;&lt;/ccm-${componentTag}&gt;`
+        }
+
         function generateResourceDownloads(componentTag) {
           const resourceDownloadArea = mainElement.querySelector('#resourceDownloadArea');
           if (!resourceDownloadArea) return;
@@ -394,14 +398,13 @@
           }
 
           resourceDownloadArea.innerHTML = `
-            <form>
-              <div class="form-group top-buffer">
-                <div class="btn-group-vertical btn-block" style="width: 100%;" role="group">
-                  <a id="downloadAppButton" class="btn btn-primary" href="#" role="button" data-componenttag="${componentTag}">Download App</a>
-                  <a id="downloadWidgetButton" class="btn btn-warning" href="#" role="button" data-componenttag="${componentTag}">iBooks Author</a>
-                </div>
+            <div class="top-buffer">
+              <a id="downloadAppButton" class="btn btn-primary btn-block" href="#" role="button" data-componenttag="${componentTag}">Download App</a>
+              <div class="btn-group btn-group-justified" role="group">
+                <a id="downloadWidgetButton" class="btn btn-warning" href="#" role="button" data-componenttag="${componentTag}">iBooks Author</a>
+                <a id="downloadSCORMButton" class="btn btn-info" href="#" role="button" data-componenttag="${componentTag}">SCORM</a>
               </div>
-            </form>
+            </div>
           `;
 
           resourceDownloadArea.querySelector('#downloadAppButton').addEventListener('click', function (event) {
@@ -412,6 +415,11 @@
           resourceDownloadArea.querySelector('#downloadWidgetButton').addEventListener('click', function (event) {
             event.preventDefault();
             downloadWidget(event.target.dataset.componenttag);
+          });
+
+          resourceDownloadArea.querySelector('#downloadSCORMButton').addEventListener('click', function (event) {
+            event.preventDefault();
+            downloadSCORM(event.target.dataset.componenttag);
           });
         }
         
@@ -471,6 +479,33 @@
             });
         }
 
+        function downloadSCORM(componentTag) {
+          showSpinner();
+          const randomNumber = Math.floor(Math.random() * (1000000 - 1 + 1)) + 1;
+          fetch('https://ccmjs.github.io/leck-components/resource_display/resource/SCORMBoilerplate/index.html')
+            .then(htmlFileBoilerplate => {
+              htmlFileBoilerplate.text().then(htmlFileContent => {
+                fetch('https://ccmjs.github.io/leck-components/resource_display/resource/SCORMBoilerplate/imsmanifest.xml')
+                  .then(manifestFileBoilerplate => {
+                    manifestFileBoilerplate.text().then(manifestFileContent => {
+                      fetch('https://ccmjs.github.io/leck-components/resource_display/resource/SCORMBoilerplate/SCORM_API_wrapper.js')
+                        .then(scormAPIFile => {
+                          let widgetZip = new JSZip();
+                          widgetZip.folder(`ccm_SCORM_${randomNumber}`).file('index.html', replaceHtmlFileContentSCORM(htmlFileContent, componentTag));
+                          widgetZip.folder(`ccm_SCORM_${randomNumber}`).file('imsmanifest.xml', replaceManifestFileContentSCORM(manifestFileContent));
+                          widgetZip.folder(`ccm_SCORM_${randomNumber}`).file('SCORM_API_wrapper.js', scormAPIFile.blob());
+                          widgetZip.generateAsync({type: "blob"})
+                            .then(function (content) {
+                              hideSpinner();
+                              saveAs(content, `ccm_SCORM_${randomNumber}.zip`);
+                            });
+                        });
+                    });
+                  });
+              });
+            });
+        }
+
         function getComponentFilename() {
           return metadataStore['path-component'].split('/').pop();
         }
@@ -485,6 +520,21 @@
             .replace(/\$\$COMPONENT-TAG\$\$/g, componentTag)
             .replace('$$CONFIG-FILE$$', getConfigFilename())
             .replace('$$CONFIG-KEY$$', metadataStore['config-key']);
+        }
+
+        function replaceHtmlFileContentSCORM(htmlFileContent, componentTag) {
+          const parser = new DOMParser;
+          const tmpDomForParsing = parser.parseFromString(generateEmbedCode(componentTag), 'text/html');
+          const decodedEmbedCode = tmpDomForParsing.body.textContent;
+          return htmlFileContent
+            .replace('$$TITLE$$', metadataStore['title'])
+            .replace('$$EMBED-CODE$$', decodedEmbedCode);
+        }
+
+        function replaceManifestFileContentSCORM(manifestFileContent) {
+          return manifestFileContent
+            .replace('$$IDENTIFIER$$', metadataStore['title'])
+            .replace('$$TITLE$$', metadataStore['title']);
         }
 
         function renderResourceInformation() {
