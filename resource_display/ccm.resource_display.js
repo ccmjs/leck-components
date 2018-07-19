@@ -491,9 +491,9 @@
                       fetch('https://ccmjs.github.io/leck-components/resource_display/resource/SCORMBoilerplate/SCORM_API_wrapper.js')
                         .then(scormAPIFile => {
                           let widgetZip = new JSZip();
-                          widgetZip.folder(`ccm_SCORM_${randomNumber}`).file('index.html', replaceHtmlFileContentSCORM(htmlFileContent, componentTag));
-                          widgetZip.folder(`ccm_SCORM_${randomNumber}`).file('imsmanifest.xml', replaceManifestFileContentSCORM(manifestFileContent));
-                          widgetZip.folder(`ccm_SCORM_${randomNumber}`).file('SCORM_API_wrapper.js', scormAPIFile.blob());
+                          widgetZip.file('index.html', replaceHtmlFileContentSCORM(htmlFileContent, componentTag));
+                          widgetZip.file('imsmanifest.xml', replaceManifestFileContentSCORM(manifestFileContent));
+                          widgetZip.file('SCORM_API_wrapper.js', scormAPIFile.blob());
                           widgetZip.generateAsync({type: "blob"})
                             .then(function (content) {
                               hideSpinner();
