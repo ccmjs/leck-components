@@ -18,7 +18,7 @@
      * recommended used framework version
      * @type {string}
      */
-    ccm: '../js/ccm-16.6.1.js',
+    ccm: 'https://ccmjs.github.io/leck-components/js/ccm-16.6.1.js',
 
     /**
      * default instance configuration
@@ -38,7 +38,7 @@
                 <div class="bounce2"></div>
                 <div class="bounce3"></div>
               </div>
-              <div class="row">
+              <div class="row top-buffer">
                 <div class="col-md-3">
                   <select id="searchCategory"></select>
                 </div>
@@ -126,8 +126,8 @@
           ]
         }
       },
-      css: [ 'ccm.load', [ '../css/bootstrap.min.css', '../css/selectize.default.min.css', '../css/default.css', './main.css' ] ],
-      js: [ 'ccm.load', [ '../js/jquery.min.js', '../js/bootstrap.min.js', '../js/selectize.min.js' ] ],
+      css: [ 'ccm.load', [ 'https://ccmjs.github.io/leck-components/css/bootstrap.min.css', 'https://ccmjs.github.io/leck-components/css/selectize.default.min.css', '../css/default.css', './main.css' ] ],
+      js: [ 'ccm.load', [ 'https://ccmjs.github.io/leck-components/js/jquery.min.js', 'https://ccmjs.github.io/leck-components/js/bootstrap.min.js', 'https://ccmjs.github.io/leck-components/js/selectize.min.js' ] ],
       resource_display: [ 'ccm.component', '../resource_display/ccm.resource_display.js' ],
       no_bootstrap_container: false, // Set to true if embedded on a site that already has a bootstrap container div
       tags: ['HTML', 'JavaScript', 'CSS', 'Education'], // Tags the user can choose from
@@ -710,7 +710,7 @@
               case 'demofullscreen':
                 break;
               default:
-                console.log(`Unknown URL parameter: ${key}`);
+                //console.log(`Unknown URL parameter: ${key}`);
             }
           });
         }
@@ -975,7 +975,7 @@
         }
 
         function navigateToResource(url) {
-          window.location.hash = `displaymetadata=${url}`;
+          addParameterToURLHash('displaymetadata', url);
         }
 
         function displayOneResource() {
@@ -1004,6 +1004,16 @@
 
         function hideSpinner() {
           mainElement.querySelector('#spinner').style.display = 'none';
+        }
+
+        function addParameterToURLHash(key, value) {
+          if (window.location.hash.substr(1).includes(`${key}=${value}`)) return;
+
+          if (window.location.hash.substr(1) === '') {
+            window.location.hash = `${key}=${value}`;
+          } else {
+            window.location.hash += `&${key}=${value}`;
+          }
         }
 
         if ( callback ) callback();
