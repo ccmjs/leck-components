@@ -55,6 +55,7 @@
                         We use a <a href="https://github.com/ccmjs/dms-data" target="_blank" rel="noopener">GitHub repository</a> to store published apps. This means, that you need to have an account on <a href="https://github.com" target="_blank" rel="noopener">github.com</a> (Click <a href="https://github.com/join" target="_blank" rel="noopener">here</a> to create one). When you click the button below it will take you to our repository and create a new issue with your request to publish a new app. We will review this request and add the app if there are no conflicts or concerns. Otherwise we will get back to you in the newly created issue to resolve any problems there may be.
                       </p>
                       <a id="publishRequestGithubButton" class="btn btn-success" href="" target="_blank" rel="noopener" role="button">Create publish request on GitHub</a>
+                      <a id="sendEmailRequestLink" href="" style="margin-left: 20px;">If you don't have a GitHub account click here to send us your request an an email</a>
                     </div>
                   </div>
                 </div>
@@ -143,7 +144,10 @@
           event.preventDefault();
 
           const metadataURL = mainElement.querySelector('#metadataFileURLInput').value;
-          if (metadataURL === '') return;
+          if (metadataURL === '') {
+            alert('Please insert a url');
+            return;
+          }
 
           publishMetadata(metadataURL);
         });
@@ -152,7 +156,10 @@
           event.preventDefault();
 
           const metadataURL = mainElement.querySelector('#metadataFileURLAfterGeneratorInput').value;
-          if (metadataURL === '') return;
+          if (metadataURL === '') {
+            alert('Please insert a url');
+            return;
+          }
 
           publishMetadata(metadataURL);
         });
@@ -179,6 +186,8 @@
           const metadataURLURIComponent = encodeURIComponent(metadataURL);
 
           mainElement.querySelector('#publishRequestGithubButton').href = `https://github.com/ccmjs/dms-data/issues/new?title=Request%20to%20publish%20an%20app&body=Metadata%20file%3A%20%5B${metadataURLURIComponent}%5D(${metadataURLURIComponent})&labels=publish+request`;
+
+          mainElement.querySelector('#sendEmailRequestLink').href = `mailto:developer@ccmjs.eu?subject=Request%20to%20publish%20an%20app%20on%20dms&body=Metadata%20file%3A%20${metadataURLURIComponent}`;
 
           mainElement.querySelector('#publishToGithubArea').style.display = 'block';
         }
