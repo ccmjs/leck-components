@@ -39,13 +39,6 @@
                 </div>
               </div>
               <div class="row top-buffer">
-                <div class="col-xs-12">
-                  <div class="alert alert-info" role="alert">
-                    <strong>Information: </strong> Please note that we will not accept any publish requests right now, because the format that new apps are published in, is still in development.
-                  </div>
-                </div>
-              </div>
-              <div class="row top-buffer">
                 <div id="publishToGithubArea" class="col-xs-12" style="display: none;">
                   <div class="panel panel-primary">
                     <div class="panel-heading">
