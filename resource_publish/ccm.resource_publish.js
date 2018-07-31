@@ -91,7 +91,7 @@
         }
       },
       css: [ 'ccm.load', 'https://ccmjs.github.io/leck-components/css/bootstrap.min.css', 'https://ccmjs.github.io/leck-components/css/default.css' ],
-      metadata_generator: [ "ccm.instance", "https://ccmjs.github.io/ccm-metadata_generator/dist/ccm.metadata_generator-0.2.0.min.js" ]
+      metadata_generator: [ "ccm.instance", "https://ccmjs.github.io/ccm-metadata_generator/dist/ccm.metadata_generator-0.3.0.min.js" ]
     },
 
     /**
