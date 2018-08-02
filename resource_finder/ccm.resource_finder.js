@@ -132,7 +132,7 @@
       no_bootstrap_container: false, // Set to true if embedded on a site that already has a bootstrap container div
       tags: ['HTML', 'JavaScript', 'CSS', 'Education'], // Tags the user can choose from
       categories: ['Art', 'Computer Science', 'Economy', 'History'], // Categories the user can choose from
-      registry: "../dms_data/registry.json", // Path to the registry file
+      registry: "https://ccmjs.github.io/dms-data/registry.json", // Path to the registry file
     },
 
     /**
@@ -717,8 +717,8 @@
 
         loadRegistry()
           .then(data => {
-            Object.keys(data).forEach(key => {
-              registryData.push(data[key]);
+            data.forEach(value => {
+              registryData.push(value);
             });
             // Load all metadata
             Promise.all(registryData.map(fetchMetadata))
