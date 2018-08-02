@@ -116,6 +116,12 @@
                   <div class="panel panel-default">
                     <div id="searchResults" class="panel-body">
                     </div>
+                    <nav>
+                      <ul class="pager">
+                        <li><a href="#" id="previousPage"><span aria-hidden="true">&larr;</span> Previous page</a></li>
+                        <li><a href="#" id="nextPage">Next page <span aria-hidden="true">&rarr;</span></a></li>
+                      </ul>
+                    </nav>
                   </div>
                 </div>
               </div>
@@ -132,7 +138,7 @@
       no_bootstrap_container: false, // Set to true if embedded on a site that already has a bootstrap container div
       tags: ['HTML', 'JavaScript', 'CSS', 'Education'], // Tags the user can choose from
       categories: ['Art', 'Computer Science', 'Economy', 'History'], // Categories the user can choose from
-      registry: "https://ccmjs.github.io/dms-data/registry.json", // Path to the registry file
+      registry: "http://localhost:5004/registry.json", // Path to the registry file
     },
 
     /**
@@ -152,6 +158,14 @@
        * @type {[]}
        */
       let registryData = [];
+
+      /**
+       * Keep track of the start index for the current page
+       * @type {number}
+       */
+      let paginationStartIndex = 0;
+
+      const itemsPerPage = 20;
 
       /**
        * Value of all filters
@@ -572,6 +586,34 @@
           displayResources();
         });
 
+        mainElement.querySelector('#previousPage').addEventListener('click', function(event) {
+          event.preventDefault();
+          paginationStartIndex = paginationStartIndex - itemsPerPage;
+          if (paginationStartIndex < 0) {
+            paginationStartIndex = 0;
+          }
+          displayResources(true);
+        });
+
+        mainElement.querySelector('#nextPage').addEventListener('click', function(event) {
+          event.preventDefault();
+          paginationStartIndex = paginationStartIndex + itemsPerPage;
+          displayResources(true);
+        });
+
+        function rerenderPagingButtons(data) {
+          if (paginationStartIndex === 0) {
+            mainElement.querySelector('#previousPage').parentNode.classList.add('disabled');
+          } else {
+            mainElement.querySelector('#previousPage').parentNode.classList.remove('disabled');
+          }
+          if ((paginationStartIndex + itemsPerPage) >= data.length) {
+            mainElement.querySelector('#nextPage').parentNode.classList.add('disabled');
+          } else {
+            mainElement.querySelector('#nextPage').parentNode.classList.remove('disabled');
+          }
+        }
+
         function sortRegistryData() {
           switch (filter.sort) {
             case 'dateNewOld':
@@ -749,11 +791,19 @@
           }
         }
 
-        function displayResources() {
+        function displayResources(withoutPaginationReset) {
           showSpinner();
           clearSearchResults();
           const data = applyAllFilters(registryData);
-          data.forEach(object => {
+
+          if (!withoutPaginationReset) {
+            paginationStartIndex = 0;
+          }
+
+          rerenderPagingButtons(data);
+
+          for (let i = paginationStartIndex; i < Math.min(paginationStartIndex + itemsPerPage, data.length); i++) {
+            let object = data[i];
             if (object.metadata) {
               if (!object.metadata.title) object.metadata.title = '-';
               if (!object.metadata.creator) object.metadata.creator = '-';
@@ -767,7 +817,7 @@
                 </div>
               `;
             }
-          });
+          }
 
           // Add event listeners to the resource cards
           mainElement.querySelectorAll('.resourceCard').forEach(card => {
