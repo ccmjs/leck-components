@@ -132,8 +132,18 @@
           ]
         }
       },
-      css: [ 'ccm.load', [ 'https://ccmjs.github.io/leck-components/css/bootstrap.min.css', 'https://ccmjs.github.io/leck-components/css/selectize.default.min.css', '../css/default.css', './main.css' ] ],
-      js: [ 'ccm.load', [ 'https://ccmjs.github.io/leck-components/js/jquery.min.js', 'https://ccmjs.github.io/leck-components/js/bootstrap.min.js', 'https://ccmjs.github.io/leck-components/js/selectize.min.js' ] ],
+      css: [ 'ccm.load', [
+        'https://ccmjs.github.io/leck-components/css/bootstrap.min.css',
+        'https://ccmjs.github.io/leck-components/css/selectize.default.min.css',
+        '../css/default.css',
+        './main.css'
+      ] ],
+      js: [ 'ccm.load', [
+        'https://ccmjs.github.io/leck-components/js/jquery.min.js',
+        'https://ccmjs.github.io/leck-components/js/bootstrap.min.js',
+        'https://ccmjs.github.io/leck-components/js/selectize.min.js',
+        'https://cdnjs.cloudflare.com/ajax/libs/elasticlunr/0.9.6/elasticlunr.min.js'
+      ] ],
       resource_display: [ 'ccm.component', '../resource_display/ccm.resource_display.js' ],
       no_bootstrap_container: false, // Set to true if embedded on a site that already has a bootstrap container div
       tags: ['HTML', 'JavaScript', 'CSS', 'Education'], // Tags the user can choose from
@@ -625,7 +635,7 @@
                 if (firstDate > secondDate) {
                   return 1;
                 }
-                return 0;
+                return -1;
               });
               break;
             case 'dateOldNew':
@@ -637,7 +647,7 @@
                 if (firstDate < secondDate) {
                   return 1;
                 }
-                return 0;
+                return -1;
               });
               break;
             case 'nameAZ':
@@ -880,14 +890,49 @@
          * @returns {*}
          */
         function searchByText(text, data) {
-          let matchingData = self.ccm.helper.clone(data);
+          const matchingData = self.ccm.helper.clone(data);
+
+          let searchIndex = elasticlunr(function () {
+            this.addField('title');
+            this.addField('description');
+            this.addField('subject');
+            this.setRef('id');
+            this.saveDocument(false);
+          });
+
+          matchingData.forEach((element, index) => {
+            searchIndex.addDoc({
+              "title": element.metadata.title,
+              "description": element.metadata.description,
+              "subject": element.metadata.subject,
+              "id": index
+            });
+          });
+
+          const searchResults = searchIndex.search(text, {
+            fields: {
+              "title": {
+               boost: 10,
+               expand: true
+              },
+              "description": {
+                expand: true
+              },
+              "subject": {
+                expand: true
+              }
+            }
+          });
+
+          let searchResultIndexes = [];
+          searchResults.forEach(result => {
+            searchResultIndexes.push(parseInt(result.ref));
+          });
 
           let index = matchingData.length;
           while(index--) {
             if (
-              matchingData[index].metadata.title.includes(text) ||
-              matchingData[index].metadata.description.includes(text) ||
-              matchingData[index].metadata.subject.includes(text)
+              searchResultIndexes.includes(index)
             ) {} else {
               matchingData.splice(index, 1);
             }
