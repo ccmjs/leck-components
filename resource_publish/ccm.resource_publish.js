@@ -48,7 +48,7 @@
                         We use a <a href="https://github.com/ccmjs/dms-data" target="_blank" rel="noopener">GitHub repository</a> to store published apps. This means, that you need to have an account on <a href="https://github.com" target="_blank" rel="noopener">github.com</a> (Click <a href="https://github.com/join" target="_blank" rel="noopener">here</a> to create one). When you click the button below it will take you to our repository and create a new issue with your request to publish a new app. We will review this request and add the app if there are no conflicts or concerns. Otherwise we will get back to you in the newly created issue to resolve any problems there may be.
                       </p>
                       <a id="publishRequestGithubButton" class="btn btn-success" href="" target="_blank" rel="noopener" role="button">Create publish request on GitHub</a>
-                      <a id="sendEmailRequestLink" href="" style="margin-left: 20px;">If you don't have a GitHub account click here to send us your request an an email</a>
+                      <a id="sendEmailRequestLink" href="" style="margin-left: 20px;">If you don't have a GitHub account click here to send us your request as an email</a>
                     </div>
                   </div>
                 </div>
