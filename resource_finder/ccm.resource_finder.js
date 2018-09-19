@@ -146,7 +146,7 @@
       ] ],
       resource_display: [ 'ccm.component', '../resource_display/ccm.resource_display.js' ],
       no_bootstrap_container: false, // Set to true if embedded on a site that already has a bootstrap container div
-      categories: ['Art', 'Computer Science', 'Economy', 'History'], // Categories the user can choose from
+      categories: [ 'Anthropology', 'Art', 'Astronomy', 'Biology', 'Chemistry', 'Classic culture', 'Computer Science', 'Craft', 'Design', 'Economy', 'Emotional education', 'Engineering', 'English', 'Environment', 'Experimental sciences', 'French', 'General Studies', 'Geography', 'Geology', 'German', 'Health', 'History', 'Italian', 'Language', 'Latin', 'Laws', 'Literature', 'Mathematics', 'Music', 'Others', 'Pedagogy', 'Philosophy', 'Physical education', 'Physics', 'Politics', 'Psychology', 'Religion', 'Russian', 'Social sciences', 'Spanish', 'Sport', 'Teaching Tools', 'Technical Drawing', 'Technology', 'Values education', 'Vocational education' ], // Categories the user can choose from
       registry: "http://localhost:5004/registry.json", // Path to the registry file
     },
 
