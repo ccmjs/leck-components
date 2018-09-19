@@ -146,7 +146,6 @@
       ] ],
       resource_display: [ 'ccm.component', '../resource_display/ccm.resource_display.js' ],
       no_bootstrap_container: false, // Set to true if embedded on a site that already has a bootstrap container div
-      tags: ['HTML', 'JavaScript', 'CSS', 'Education'], // Tags the user can choose from
       categories: ['Art', 'Computer Science', 'Economy', 'History'], // Categories the user can choose from
       registry: "http://localhost:5004/registry.json", // Path to the registry file
     },
@@ -236,16 +235,9 @@
         /**
          * Initialize the tag filter
          */
-        let tagOptions = [];
-        self.tags.forEach(tag => {
-          tagOptions.push({
-            value: tag
-          });
-        });
-
         const tagSelector = $(mainElement.querySelector('#filterTags')).selectize({
           delimiter: ',',
-          persist: false,
+          persist: true,
           create: true,
           plugins: ['remove_button'],
           maxItems: null,
@@ -253,7 +245,7 @@
           valueField: 'value',
           labelField: 'value',
           searchField: 'value',
-          options: tagOptions
+          options: []
         })[0].selectize;
 
         const languages = {
@@ -776,6 +768,7 @@
             Promise.all(registryData.map(fetchMetadata))
               .then(() => {
                 sortRegistryData();
+                fillInTags();
                 displayResources();
               });
           })
@@ -799,6 +792,30 @@
           } else {
             delete registryData[index].metadata;
           }
+        }
+
+        function fillInTags() {
+          const possibleTags = new Set();
+          registryData.forEach(entry => {
+            if (entry.metadata.tags) {
+              entry.metadata.tags.split(/[ ,]+/).forEach(tag => {
+                possibleTags.add(tag);
+              });
+            }
+          });
+
+          const tagOptions = [];
+
+          possibleTags.forEach(possibleTag => {
+            tagOptions.push({
+              value: possibleTag
+            });
+          });
+
+          tagSelector.clearOptions();
+          tagSelector.load(function(callback) {
+            callback(tagOptions);
+          });
         }
 
         function displayResources(withoutPaginationReset) {
