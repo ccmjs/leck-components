@@ -38,6 +38,9 @@
                 <div class="bounce2"></div>
                 <div class="bounce3"></div>
               </div>
+              <div class="row text-center">
+                <h1 id="performanceOutput" style="display: inline;"></h1><h2 style="display: inline;"> ms</h2>
+              </div>
               <div class="row top-buffer">
                 <div class="col-md-3">
                   <select id="searchCategory"></select>
@@ -147,7 +150,7 @@
       resource_display: [ 'ccm.component', '../resource_display/ccm.resource_display.js' ],
       no_bootstrap_container: false, // Set to true if embedded on a site that already has a bootstrap container div
       categories: [ 'Anthropology', 'Art', 'Astronomy', 'Biology', 'Chemistry', 'Classic culture', 'Computer Science', 'Craft', 'Design', 'Economy', 'Emotional education', 'Engineering', 'English', 'Environment', 'Experimental sciences', 'French', 'General Studies', 'Geography', 'Geology', 'German', 'Health', 'History', 'Italian', 'Language', 'Latin', 'Laws', 'Literature', 'Mathematics', 'Music', 'Others', 'Pedagogy', 'Philosophy', 'Physical education', 'Physics', 'Politics', 'Psychology', 'Religion', 'Russian', 'Social sciences', 'Spanish', 'Sport', 'Teaching Tools', 'Technical Drawing', 'Technology', 'Values education', 'Vocational education' ], // Categories the user can choose from
-      registry: "http://localhost:5004/registry.json", // Path to the registry file
+      registry: "https://leoneck.github.io/dms-performance-test/registry10000.json", // Path to the registry file
     },
 
     /**
@@ -161,6 +164,8 @@
        * @type {Instance}
        */
       const self = this;
+
+      let startTime = 0;
 
       /**
        * Registry of all resources
@@ -761,16 +766,47 @@
 
         loadRegistry()
           .then(data => {
-            data.forEach(value => {
+            const begin = performance.now() - startTime;
+            registryData = data;
+            //sortRegistryData();
+            const sortFinished = performance.now() - startTime;
+            fillInTags();
+            const fillInTagsFinished = performance.now() - startTime;
+            displayResources();
+            const performanceTime = performance.now() - startTime;
+            mainElement.querySelector('#performanceOutput').innerHTML = `${begin}, ${sortFinished}, ${fillInTagsFinished}, ${performanceTime}`;
+            console.log(`${performanceTime} ms`);
+            /*data.forEach(value => {
               registryData.push(value);
-            });
+            });*/
             // Load all metadata
-            Promise.all(registryData.map(fetchMetadata))
+            /*Promise.all(registryData.map(fetchMetadata))
               .then(() => {
                 sortRegistryData();
                 fillInTags();
                 displayResources();
-              });
+                console.log(`${performance.now() - startTime} ms`);
+              });*/
+            /*const BATCH_SIZE = 20;
+
+            let promiseChain = Promise.resolve();
+            for(let i = 0; i < registryData.length; i += BATCH_SIZE) {
+              promiseChain = promiseChain
+                .then(() => Promise.all(
+                  registryData
+                    .slice(i, i + BATCH_SIZE)
+                    .map((object, index) => fetchMetadata(object, i + index))
+                ));
+            }
+
+            promiseChain.then(() => {
+              sortRegistryData();
+              fillInTags();
+              displayResources();
+              console.log(`${performance.now() - startTime} ms`);
+              console.log(registryData);
+            });*/
+
           })
           .catch(error => {
             console.log(error.message);
@@ -778,21 +814,22 @@
           });
 
         async function loadRegistry() {
+          startTime = performance.now();
           const response = await fetch(self.registry);
           return await response.json();
         }
 
-        async function fetchMetadata(object, index) {
+        /*async function fetchMetadata(object, index) {
           const data = await fetch(object.metadata);
           const content = await data.json();
           if (content.metaFormat === 'ccm-meta' && content.metaVersion === '1.0.0') {
             const metaURL = registryData[index].metadata;
             registryData[index].metadata = content;
-            registryData[index].formerMetaURL = metaURL;
+            registryData[index].metadataURL = metaURL;
           } else {
             delete registryData[index].metadata;
           }
-        }
+        }*/
 
         function fillInTags() {
           const possibleTags = new Set();
@@ -836,7 +873,7 @@
               if (!object.metadata.creator) object.metadata.creator = '-';
               if (!object.metadata.date) object.metadata.date = '-';
               mainElement.querySelector('#searchResults').innerHTML += `
-                <div class="panel panel-default searchResult resourceCard" data-metaurl="${object.formerMetaURL}">
+                <div class="panel panel-default searchResult resourceCard" data-metaurl="${object.metadataURL}">
                   <div class="panel-body" style="width: 100%;">
                     <h4 style="margin-top: 0;" class="containText">${object.metadata.title}</h4>
                     <span class="containText">${object.metadata.creator}</span><span class="pull-right containText">${object.metadata.date}</span>
