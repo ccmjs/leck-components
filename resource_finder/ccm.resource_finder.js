@@ -125,6 +125,11 @@
                   </div>
                 </div>
               </div>
+              <div class="row text-center">
+                <div class="col-xs-12">
+                  <span class="text-muted"><span id="searchResultsCounter"></span> search results</span>
+                </div>
+              </div>
               `
             }, {
               "id": "resourceDisplaySpace"
@@ -811,6 +816,8 @@
           if (!withoutPaginationReset) {
             paginationStartIndex = 0;
           }
+
+          mainElement.querySelector('#searchResultsCounter').innerHTML = data.length;
 
           rerenderPagingButtons(data);
 
