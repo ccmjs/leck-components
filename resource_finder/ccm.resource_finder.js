@@ -647,22 +647,22 @@
               break;
             case 'nameAZ':
               registryData.sort((a, b) => {
-                return a.metadata.title.localeCompare(b.metadata.title);
+                return a.metadata.title.localeCompare(b.metadata.title, undefined, { numeric: true });
               });
               break;
             case 'nameZA':
               registryData.sort((a, b) => {
-                return b.metadata.title.localeCompare(a.metadata.title);
+                return b.metadata.title.localeCompare(a.metadata.title, undefined, { numeric: true });
               });
               break;
             case 'creatorAZ':
               registryData.sort((a, b) => {
-                return a.metadata.creator.localeCompare(b.metadata.creator);
+                return a.metadata.creator.localeCompare(b.metadata.creator, undefined, { numeric: true });
               });
               break;
             case 'creatorZA':
               registryData.sort((a, b) => {
-                return b.metadata.creator.localeCompare(a.metadata.creator);
+                return b.metadata.creator.localeCompare(a.metadata.creator, undefined, { numeric: true });
               });
               break;
             default:
