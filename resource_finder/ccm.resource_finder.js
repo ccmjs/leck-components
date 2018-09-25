@@ -599,6 +599,9 @@
 
         mainElement.querySelector('#nextPage').addEventListener('click', function(event) {
           event.preventDefault();
+          if (mainElement.querySelector('#nextPage').parentNode.classList.contains('disabled')) {
+            return;
+          }
           paginationStartIndex = paginationStartIndex + itemsPerPage;
           displayResources(true);
         });
