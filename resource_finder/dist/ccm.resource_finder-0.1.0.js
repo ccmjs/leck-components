@@ -117,7 +117,18 @@
                   <div class="panel panel-default">
                     <div id="searchResults" class="panel-body">
                     </div>
+                    <nav>
+                      <ul class="pager">
+                        <li><a href="#" id="previousPage"><span aria-hidden="true">&larr;</span> Previous page</a></li>
+                        <li><a href="#" id="nextPage">Next page <span aria-hidden="true">&rarr;</span></a></li>
+                      </ul>
+                    </nav>
                   </div>
+                </div>
+              </div>
+              <div class="row text-center">
+                <div class="col-xs-12">
+                  <span class="text-muted"><span id="searchResultsCounter"></span> search results</span>
                 </div>
               </div>
               `
@@ -127,13 +138,22 @@
           ]
         }
       },
-      css: [ 'ccm.load', [ 'https://ccmjs.github.io/leck-components/css/bootstrap.min.css', 'https://ccmjs.github.io/leck-components/css/selectize.default.min.css', 'https://ccmjs.github.io/leck-components/css/default.css', 'https://ccmjs.github.io/leck-components/resource_finder/main.css' ] ],
-      js: [ 'ccm.load', [ 'https://ccmjs.github.io/leck-components/js/jquery.min.js', 'https://ccmjs.github.io/leck-components/js/bootstrap.min.js', 'https://ccmjs.github.io/leck-components/js/selectize.min.js' ] ],
+      css: [ 'ccm.load', [
+        'https://ccmjs.github.io/leck-components/css/bootstrap.min.css',
+        'https://ccmjs.github.io/leck-components/css/selectize.default.min.css',
+        'https://ccmjs.github.io/leck-components/css/default.css',
+        'https://ccmjs.github.io/leck-components/resource_finder/main.css'
+      ] ],
+      js: [ 'ccm.load', [
+        'https://ccmjs.github.io/leck-components/js/jquery.min.js',
+        'https://ccmjs.github.io/leck-components/js/bootstrap.min.js',
+        'https://ccmjs.github.io/leck-components/js/selectize.min.js',
+        'https://cdnjs.cloudflare.com/ajax/libs/elasticlunr/0.9.6/elasticlunr.min.js'
+      ] ],
       resource_display: [ 'ccm.component', 'https://ccmjs.github.io/leck-components/resource_display/dist/ccm.resource_display-0.1.0.js' ],
       no_bootstrap_container: false, // Set to true if embedded on a site that already has a bootstrap container div
-      tags: ['HTML', 'JavaScript', 'CSS', 'Education'], // Tags the user can choose from
-      categories: ['Art', 'Computer Science', 'Economy', 'History'], // Categories the user can choose from
-      registry: "https://ccmjs.github.io/leck-components/dms_data_deploy/registry.json", // Path to the registry file
+      categories: [ 'Anthropology', 'Art', 'Astronomy', 'Biology', 'Chemistry', 'Classic culture', 'Computer Science', 'Craft', 'Design', 'Economy', 'Emotional education', 'Engineering', 'English', 'Environment', 'Experimental sciences', 'French', 'General Studies', 'Geography', 'Geology', 'German', 'Health', 'History', 'Italian', 'Language', 'Latin', 'Laws', 'Literature', 'Mathematics', 'Music', 'Others', 'Pedagogy', 'Philosophy', 'Physical education', 'Physics', 'Politics', 'Psychology', 'Religion', 'Russian', 'Social sciences', 'Spanish', 'Sport', 'Teaching Tools', 'Technical Drawing', 'Technology', 'Values education', 'Vocational education' ], // Categories the user can choose from
+      registry: "https://ccmjs.github.io/dms_data/registry.json", // Path to the registry file
     },
 
     /**
@@ -153,6 +173,14 @@
        * @type {[]}
        */
       let registryData = [];
+
+      /**
+       * Keep track of the start index for the current page
+       * @type {number}
+       */
+      let paginationStartIndex = 0;
+
+      const itemsPerPage = 20;
 
       /**
        * Value of all filters
@@ -213,16 +241,9 @@
         /**
          * Initialize the tag filter
          */
-        let tagOptions = [];
-        self.tags.forEach(tag => {
-          tagOptions.push({
-            value: tag
-          });
-        });
-
         const tagSelector = $(mainElement.querySelector('#filterTags')).selectize({
           delimiter: ',',
-          persist: false,
+          persist: true,
           create: true,
           plugins: ['remove_button'],
           maxItems: null,
@@ -230,7 +251,7 @@
           valueField: 'value',
           labelField: 'value',
           searchField: 'value',
-          options: tagOptions
+          options: []
         })[0].selectize;
 
         const languages = {
@@ -573,6 +594,37 @@
           displayResources();
         });
 
+        mainElement.querySelector('#previousPage').addEventListener('click', function(event) {
+          event.preventDefault();
+          paginationStartIndex = paginationStartIndex - itemsPerPage;
+          if (paginationStartIndex < 0) {
+            paginationStartIndex = 0;
+          }
+          displayResources(true);
+        });
+
+        mainElement.querySelector('#nextPage').addEventListener('click', function(event) {
+          event.preventDefault();
+          if (mainElement.querySelector('#nextPage').parentNode.classList.contains('disabled')) {
+            return;
+          }
+          paginationStartIndex = paginationStartIndex + itemsPerPage;
+          displayResources(true);
+        });
+
+        function rerenderPagingButtons(data) {
+          if (paginationStartIndex === 0) {
+            mainElement.querySelector('#previousPage').parentNode.classList.add('disabled');
+          } else {
+            mainElement.querySelector('#previousPage').parentNode.classList.remove('disabled');
+          }
+          if ((paginationStartIndex + itemsPerPage) >= data.length) {
+            mainElement.querySelector('#nextPage').parentNode.classList.add('disabled');
+          } else {
+            mainElement.querySelector('#nextPage').parentNode.classList.remove('disabled');
+          }
+        }
+
         function sortRegistryData() {
           switch (filter.sort) {
             case 'dateNewOld':
@@ -584,7 +636,7 @@
                 if (firstDate > secondDate) {
                   return 1;
                 }
-                return 0;
+                return -1;
               });
               break;
             case 'dateOldNew':
@@ -596,27 +648,27 @@
                 if (firstDate < secondDate) {
                   return 1;
                 }
-                return 0;
+                return -1;
               });
               break;
             case 'nameAZ':
               registryData.sort((a, b) => {
-                return a.metadata.title.localeCompare(b.metadata.title);
+                return a.metadata.title.localeCompare(b.metadata.title, undefined, { numeric: true });
               });
               break;
             case 'nameZA':
               registryData.sort((a, b) => {
-                return b.metadata.title.localeCompare(a.metadata.title);
+                return b.metadata.title.localeCompare(a.metadata.title, undefined, { numeric: true });
               });
               break;
             case 'creatorAZ':
               registryData.sort((a, b) => {
-                return a.metadata.creator.localeCompare(b.metadata.creator);
+                return a.metadata.creator.localeCompare(b.metadata.creator, undefined, { numeric: true });
               });
               break;
             case 'creatorZA':
               registryData.sort((a, b) => {
-                return b.metadata.creator.localeCompare(a.metadata.creator);
+                return b.metadata.creator.localeCompare(a.metadata.creator, undefined, { numeric: true });
               });
               break;
             default:
@@ -711,22 +763,17 @@
               case 'demofullscreen':
                 break;
               default:
-                //console.log(`Unknown URL parameter: ${key}`);
+              //console.log(`Unknown URL parameter: ${key}`);
             }
           });
         }
 
         loadRegistry()
           .then(data => {
-            Object.keys(data).forEach(key => {
-              registryData.push(data[key]);
-            });
-            // Load all metadata
-            Promise.all(registryData.map(fetchMetadata))
-              .then(() => {
-                sortRegistryData();
-                displayResources();
-              });
+            registryData = data;
+            sortRegistryData();
+            fillInTags();
+            displayResources();
           })
           .catch(error => {
             console.log(error.message);
@@ -738,29 +785,51 @@
           return await response.json();
         }
 
-        async function fetchMetadata(object, index) {
-          const data = await fetch(object.metadata);
-          const content = await data.json();
-          if (content.metaFormat === 'ccm-meta' && content.metaVersion === '1.0.0') {
-            const metaURL = registryData[index].metadata;
-            registryData[index].metadata = content;
-            registryData[index].formerMetaURL = metaURL;
-          } else {
-            delete registryData[index].metadata;
-          }
+        function fillInTags() {
+          const possibleTags = new Set();
+          registryData.forEach(entry => {
+            if (entry.metadata.tags) {
+              entry.metadata.tags.split(/[ ,]+/).forEach(tag => {
+                possibleTags.add(tag);
+              });
+            }
+          });
+
+          const tagOptions = [];
+
+          possibleTags.forEach(possibleTag => {
+            tagOptions.push({
+              value: possibleTag
+            });
+          });
+
+          tagSelector.clearOptions();
+          tagSelector.load(function(callback) {
+            callback(tagOptions);
+          });
         }
 
-        function displayResources() {
+        function displayResources(withoutPaginationReset) {
           showSpinner();
           clearSearchResults();
           const data = applyAllFilters(registryData);
-          data.forEach(object => {
+
+          if (!withoutPaginationReset) {
+            paginationStartIndex = 0;
+          }
+
+          mainElement.querySelector('#searchResultsCounter').innerHTML = data.length;
+
+          rerenderPagingButtons(data);
+
+          for (let i = paginationStartIndex; i < Math.min(paginationStartIndex + itemsPerPage, data.length); i++) {
+            let object = data[i];
             if (object.metadata) {
               if (!object.metadata.title) object.metadata.title = '-';
               if (!object.metadata.creator) object.metadata.creator = '-';
               if (!object.metadata.date) object.metadata.date = '-';
               mainElement.querySelector('#searchResults').innerHTML += `
-                <div class="panel panel-default searchResult resourceCard" data-metaurl="${object.formerMetaURL}">
+                <div class="panel panel-default searchResult resourceCard" data-metaurl="${object.metadataURL}">
                   <div class="panel-body" style="width: 100%;">
                     <h4 style="margin-top: 0;" class="containText">${object.metadata.title}</h4>
                     <span class="containText">${object.metadata.creator}</span><span class="pull-right containText">${object.metadata.date}</span>
@@ -768,7 +837,7 @@
                 </div>
               `;
             }
-          });
+          }
 
           // Add event listeners to the resource cards
           mainElement.querySelectorAll('.resourceCard').forEach(card => {
@@ -831,14 +900,49 @@
          * @returns {*}
          */
         function searchByText(text, data) {
-          let matchingData = self.ccm.helper.clone(data);
+          const matchingData = self.ccm.helper.clone(data);
+
+          let searchIndex = elasticlunr(function () {
+            this.addField('title');
+            this.addField('description');
+            this.addField('subject');
+            this.setRef('id');
+            this.saveDocument(false);
+          });
+
+          matchingData.forEach((element, index) => {
+            searchIndex.addDoc({
+              "title": element.metadata.title,
+              "description": element.metadata.description,
+              "subject": element.metadata.subject,
+              "id": index
+            });
+          });
+
+          const searchResults = searchIndex.search(text, {
+            fields: {
+              "title": {
+                boost: 10,
+                expand: true
+              },
+              "description": {
+                expand: true
+              },
+              "subject": {
+                expand: true
+              }
+            }
+          });
+
+          let searchResultIndexes = [];
+          searchResults.forEach(result => {
+            searchResultIndexes.push(parseInt(result.ref));
+          });
 
           let index = matchingData.length;
           while(index--) {
             if (
-              matchingData[index].metadata.title.includes(text) ||
-              matchingData[index].metadata.description.includes(text) ||
-              matchingData[index].metadata.subject.includes(text)
+              searchResultIndexes.includes(index)
             ) {} else {
               matchingData.splice(index, 1);
             }
