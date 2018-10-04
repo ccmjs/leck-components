@@ -153,7 +153,7 @@
       resource_display: [ 'ccm.component', 'https://ccmjs.github.io/leck-components/resource_display/dist/ccm.resource_display-0.1.0.js' ],
       no_bootstrap_container: false, // Set to true if embedded on a site that already has a bootstrap container div
       categories: [ 'Anthropology', 'Art', 'Astronomy', 'Biology', 'Chemistry', 'Classic culture', 'Computer Science', 'Craft', 'Design', 'Economy', 'Emotional education', 'Engineering', 'English', 'Environment', 'Experimental sciences', 'French', 'General Studies', 'Geography', 'Geology', 'German', 'Health', 'History', 'Italian', 'Language', 'Latin', 'Laws', 'Literature', 'Mathematics', 'Music', 'Others', 'Pedagogy', 'Philosophy', 'Physical education', 'Physics', 'Politics', 'Psychology', 'Religion', 'Russian', 'Social sciences', 'Spanish', 'Sport', 'Teaching Tools', 'Technical Drawing', 'Technology', 'Values education', 'Vocational education' ], // Categories the user can choose from
-      registry: "https://ccmjs.github.io/dms_data/registry.json", // Path to the registry file
+      registry: "https://ccmjs.github.io/dms-data/registry.json", // Path to the registry file
     },
 
     /**
