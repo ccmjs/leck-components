@@ -18,7 +18,7 @@
      * recommended used framework version
      * @type {string}
      */
-    ccm: 'https://ccmjs.github.io/leck-components/js/ccm-16.6.1.js',
+    ccm: 'https://ccmjs.github.io/leck-components/js/ccm-18.0.5.js',
 
     /**
      * default instance configuration
@@ -72,9 +72,8 @@
 
       /**
        * starts the instance
-       * @param {function} [callback] - called after all synchronous and asynchronous operations are complete
        */
-      this.start = callback => {
+      this.start = async () => {
 
         /**
          * Remove the bootstrap container class if config value no_bootstrap_container is true
@@ -328,21 +327,23 @@
             return;
           }
 
-          self.ccm.get(metadataStore['path-config'], metadataStore['config-key'], config => {
-            self.ccm.instance(metadataStore['path-component'], config, instance => {
-              const appDemoSpace = mainElement.querySelector('#appDemoSpace');
-              appDemoSpace.style.border = '1px solid #ddd';
-              appDemoSpace.style.borderRadius = '4px';
-              appDemoSpace.style.boxShadow = '0 1px 1px rgba(0,0,0,.05)';
-              appDemoSpace.style.padding = '9px';
-              appDemoSpace.appendChild(instance.root);
-              let componentTag = instance.index.split('-');
-              componentTag.pop();
-              componentTag = componentTag.join('-');
-              displayEmbedCode(componentTag);
-              generateResourceDownloads(componentTag);
-              instance.start();
-            });
+          self.ccm.get(metadataStore['path-config'], metadataStore['config-key'])
+            .then(config => {
+              self.ccm.instance(metadataStore['path-component'], config)
+                .then(instance => {
+                const appDemoSpace = mainElement.querySelector('#appDemoSpace');
+                appDemoSpace.style.border = '1px solid #ddd';
+                appDemoSpace.style.borderRadius = '4px';
+                appDemoSpace.style.boxShadow = '0 1px 1px rgba(0,0,0,.05)';
+                appDemoSpace.style.padding = '9px';
+                appDemoSpace.appendChild(instance.root);
+                let componentTag = instance.index.split('-');
+                componentTag.pop();
+                componentTag = componentTag.join('-');
+                displayEmbedCode(componentTag);
+                generateResourceDownloads(componentTag);
+                instance.start();
+              });
           });
         }
 
@@ -887,7 +888,6 @@
           mainElement.querySelector('#spinner').style.display = 'none';
         }
 
-        if ( callback ) callback();
       };
 
     }
