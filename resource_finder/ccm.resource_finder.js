@@ -1081,16 +1081,16 @@
           addParameterToURLHash('displaymetadata', url);
         }
 
-        function displayOneResource() {
+        async function displayOneResource() {
           clearResourceDisplay();
 
           // Hide finder
           mainElement.querySelector('#resource_finder').style.display = 'none';
 
           // Create instance of the resource display
-          self.resource_display.start({}, instance => {
-            mainElement.querySelector('#resourceDisplaySpace').appendChild(instance.root);
-          });
+          const resourceDisplayInstance = await self.resource_display.start();
+          mainElement.querySelector('#resourceDisplaySpace').appendChild(resourceDisplayInstance.root);
+
         }
 
         function clearSearchResults() {
