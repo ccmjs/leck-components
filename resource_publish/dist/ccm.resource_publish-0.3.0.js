@@ -119,8 +119,7 @@
       this.ready = async () => {
         // set shortcut to help functions
         $ = self.ccm.helper;
-
-        callback();
+        
       };
 
       /**
@@ -183,7 +182,7 @@
 
           mainElement.querySelector('#publishToGithubArea').style.display = 'block';
         }
-        
+
       };
 
     }
