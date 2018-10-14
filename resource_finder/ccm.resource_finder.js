@@ -18,7 +18,7 @@
      * recommended used framework version
      * @type {string}
      */
-    ccm: 'https://ccmjs.github.io/leck-components/js/ccm-16.6.1.js',
+    ccm: 'https://ccmjs.github.io/leck-components/js/ccm-18.0.5.js',
 
     /**
      * default instance configuration
@@ -197,9 +197,8 @@
 
       /**
        * starts the instance
-       * @param {function} [callback] - called after all synchronous and asynchronous operations are complete
        */
-      this.start = callback => {
+      this.start = async () => {
 
         /**
          * Remove the bootstrap container class if config value no_bootstrap_container is true
@@ -1120,7 +1119,6 @@
           }
         }
 
-        if ( callback ) callback();
       };
 
     }
