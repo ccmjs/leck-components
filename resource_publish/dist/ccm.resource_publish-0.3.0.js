@@ -19,7 +19,7 @@
      * recommended used framework version
      * @type {string}
      */
-    ccm: 'https://ccmjs.github.io/leck-components/js/ccm-18.0.5.js',
+    ccm: 'https://ccmjs.github.io/leck-components/js/ccm-16.6.1.js',
 
     /**
      * default instance configuration
@@ -115,17 +115,20 @@
 
       /**
        * is called once after the initialization and is then deleted
+       * @param {function} callback - called after all synchronous and asynchronous operations are complete
        */
-      this.ready = async () => {
+      this.ready = callback => {
         // set shortcut to help functions
         $ = self.ccm.helper;
-        
+
+        callback();
       };
 
       /**
        * starts the instance
+       * @param {function} [callback] - called after all synchronous and asynchronous operations are complete
        */
-      this.start = async () => {
+      this.start = callback => {
 
         const mainElement = this.ccm.helper.html(this.html.main, {
         });
@@ -183,6 +186,7 @@
           mainElement.querySelector('#publishToGithubArea').style.display = 'block';
         }
 
+        if ( callback ) callback();
       };
 
     }
