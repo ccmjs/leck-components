@@ -18,7 +18,7 @@
      * recommended used framework version
      * @type {string}
      */
-    ccm: 'https://ccmjs.github.io/leck-components/js/ccm-18.0.5.js',
+    ccm: 'https://ccmjs.github.io/leck-components/js/ccm-18.0.6.js',
 
     /**
      * default instance configuration
